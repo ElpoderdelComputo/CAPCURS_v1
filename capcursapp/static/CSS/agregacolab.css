@@ -1,0 +1,165 @@
+/* Estilos generales*/
+
+
+body {
+  background-color: transparent;
+}
+
+.emergente {
+  background-color: #fff;
+  padding: 2rem;
+  margin: auto;
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+  position: fixed;
+  top: 50%;
+  left: 40%;
+  transform: translate(-40%, -60%);
+}
+
+
+.main {
+  margin-top: 2rem;
+}
+
+/*Estilos de Bootstrap*/
+legend {
+  margin-top: 5px;
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+
+h1{
+  font-size: 2.5rem;
+  font-weight: bold;
+  margin-top: auto;
+  text-align: center;
+  font-family: Verdana sans-serif;
+}
+
+form {
+  margin-top: 2rem;
+
+}
+
+hr {
+  margin: 1rem 0;
+  border-top: 0.1rem solid #dee2e6;
+}
+
+.table {
+  margin-top: 1rem;
+}
+
+.btn-success {
+  float: right;
+}
+
+.btn-submit,
+.btn-danger {
+  display: inline-block;
+  margin: 1rem auto;
+}
+
+.btn-submit {
+  margin-right: 1rem;
+}
+
+
+.alert {
+  margin-top: 1rem;
+}
+
+.form-row {
+  display: flex;
+  justify-content: center;
+  text-align: center;
+}
+
+.form-row button,
+.form-row a {
+  margin: 0 auto;
+}
+
+
+
+.form-control1 {
+  border: none;
+  background-color: transparent;
+  color: #000000;
+  font-size: 1rem;
+  text-align: end;
+  width: 50%;
+  justify-content: space-between;
+}
+
+.form-control2 {
+  border: none;
+  background-color: transparent;
+  color: #000000;
+  font-size: 1rem;
+  text-align: start;
+  width: 50%;
+}
+
+.form-control3 {
+  border: none;
+  background-color: transparent;
+  color: #000000;
+  font-size: 1rem;
+  text-align: start;
+}
+
+.form-row > div {
+  display: flex;
+  align-content: center;
+  width: 100%;
+  margin: 0;
+}
+
+input{
+  text-align: center;
+  font-size: 2rem;
+  font-weight: bold;
+  margin-top: auto;
+  font-family: Arial, sans-serif;
+}
+
+.btn-delete {
+  color: #ff0000;
+  background-color: transparent;
+  border-color: transparent;
+  padding: .25rem .5rem;
+  font-size: 1rem;
+  line-height: 1.5;
+  border-radius: 0.1rem;
+}
+
+.textarea-estilo {
+  height: 25px;
+  min-height: 25px;
+  width: 100%;
+}
+
+.tabla-colabs-container {
+    display: none;
+}
+
+.tabla-colabs-container.mostrar {
+    display: block;
+}
+
+.row.border-custom {
+  border: 2px solid #ffffff;
+  border-radius: 5px;
+  transition: all 0.3s ease;
+  padding: 10px;
+}
+
+.row.border-custom:hover {
+  border-color: #4CAF50;
+  transform: translate(2px, -2px);
+}
+
+
+
+

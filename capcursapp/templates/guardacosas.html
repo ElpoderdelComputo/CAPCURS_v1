@@ -1,0 +1,166 @@
+<script>
+    function actualizarTabla(data) {
+        var tabla = $('#tabla-colabs-body');
+        tabla.empty();
+        if (data.length > 0) {
+            $.each(data, function(index, row) {
+                var fila = '<tr>' +
+                    '<td>' + row.clave + '</td>' +
+                    '<td>' + row.nombre + ' ' + row.apellido + '</td>' +
+                    '</tr>';
+                tabla.append(fila);
+            });
+            $('.tabla-colabs-container').addClass('mostrar');
+        } else {
+            tabla.html('<tr><td colspan="2">¡Sin colaboradores!</td></tr>');
+            $('.tabla-colabs-container').removeClass('mostrar');
+        }
+    }
+
+    function cargarTabla() {
+        var cve_curso = $('#cve_curso').val();
+        var url = '/hay_colabs/' + cve_curso + '/';
+        console.log('La URL del endpoint es: ' + url);
+        $.ajax({
+            url: url,
+            type: 'GET',
+            dataType: 'json', // Agregar dataType
+            success: function(response) {
+                var data = [];
+                $.each(response.data, function(key, value) {
+                    data.push(value);
+                });
+                console.log(data);
+                actualizarTabla(data); // Agregar console.log() antes de esta línea
+            },
+
+            error: function(error) {
+                console.log(error);
+                $('#tabla-colabs-body').html('');
+                $('.tabla-colabs-container').removeClass('mostrar');
+            }
+        });
+    }
+
+    $(document).ready(function() {
+        cargarTabla();
+    });
+</script>
+
+
+<body>
+<main>
+    <!-- La imagen institucional -->
+    <div class="center-image">
+        <img src="{% static 'imagenes/SubDirImg.png' %}" alt="" width="600">
+    </div>
+    <hr>
+    <h1> {{ usuario.cve_posgrad }} - {{ usuario.nom_program }}</h1>
+    <legend id="error-cve-curso-profesor" style="display: none; color: red;">La combinación de clave de curso y clave académica ya existe en la base de datos.</legend>
+    <br>
+    <!-- <form method="POST" action="/agregar_curso/" class="row g-2" id="formulario"> -->
+    <form action="{% url 'agregar_curso' %}?from=agregar_curso" method="POST" class="row g-2"  id="formulario">
+
+        {% csrf_token %}
+        {{ formulario.as_p }}
+        {% if messages %}
+            <div class="alert alert-success" role="alert">
+                Curso registrado exitosamente!
+            </div>
+        {% endif %}
+        <div class="row">
+            <div class="col-md-6">
+                <fieldset>
+                    <legend style="text-align: center;">Curso</legend>
+                    <hr>
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <div style="display:flex; align-items:center; justify-content: center;">
+                                <label for="cve_curso" style="width:150px;">Clave:</label>
+                                <select name="cve_curso" id="cve_curso" class="form-select" style="width:calc(100% - 150px);" onchange="guardarDatos(); document.getElementById('cve_curso').value = this.value;">
+                                    <option value="" selected disabled>-- Selecciona una opción --</option>
+                                    {% for curso in loscursos %}
+                                        <option value="{{ curso.cve_curso }}" {% if curso.cve_curso == formulario.cve_curso.value %}selected{% endif %}>
+                                            {{ curso.cve_curso }} : {{ curso.nombre }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <br>
+                            <div style="display:flex; align-items:center;">
+                                <label for="creditos" style="display:inline-block;width:150px;">Créditos:</label>
+                                <input type="text" name="creditos" id="creditos" class="form-control_1" style="width:calc(100% - 150px);" readonly>
+                            </div>
+                            <br>
+                            <br>
+                            <br>
+                        </div>
+                    </div>
+                </fieldset>
+            </div>
+            <div class="col-md-6">
+                <fieldset>
+                    <legend style="text-align: center;">Profesor titular</legend>
+                    <hr>
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <div style="display:flex; align-items:center;">
+                                <label style="width:calc(100% - 50px);">Clave</label>
+                                <label for="cve_academic"></label><select name="cve_academic" id="cve_academic" class="form-select" style="width:500px" onchange="verificarCursoProfesor()">
+                                <option value="" selected disabled>-- Selecciona una opción --</option>
+                                {% for academico in academicos %}
+                                    <option value="{{ academico.cve_academic }}"> {{ academico.cve_academic }}: {{ academico.nombres }} {{ academico.apellidos }}</option>
+                                {% endfor %}
+                            </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Boton para agregar colaboradores -->
+                    <div class="container" content="center">
+                        <div class="row">
+                            {% if formulario.cve_curso.value %}
+                                <div>
+                                    <a class="btn btn-outline-secondary" href="{% url 'agregar_colab' cve_curso='' %}" id="btnAgregarColaboradores" onclick="abrirVentanaEmergente(event, this.href)">Agregar Colaboradores</a>
+                                </div>
+                            {% else %}
+                                <div>
+                                    <a class="btn btn-secondary" id="btnAgregarColaboradores" disabled>+ Colaboradores</a>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </fieldset>
+            </div>
+            <!-- Tabla desplegable si existen colabs-->
+            <div class="tabla-colabs-container">
+                <legend>Colaboradores</legend>
+                <table class="table" id="tabla-colabs">
+                    <thead>
+                    <tr>
+                        <th>Clave</th>
+                        <th>Nombre</th>
+                    </tr>
+                    </thead>
+                    <tbody id="tabla-colabs-body">
+
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <!-- Fin-->
+    <div class="col-md-12">
+        <legend>Ingrese horarios donde corresponda</legend>
+        <!-- Limites -->
+        <div class="container" content="center">
+
+    </div>
+        <!-- Limites -->
+        <hr>
+        <br>
+        <div content="center">
+            <input type="submit" value="Guardar curso" class="btn btn-primary" id="guardar">
+            <a class="btn btn-warning" href="{% url 'mostrar_cursos' %}">Cancelar</a>
+        </div>
+    </form>
+</main>

@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+{% load static %}
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+    <!-- Agrega estilo tabla de datos Boostrap -->
+    <link rel="stylesheet" href="{% static 'Boostrap5/css/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'CSS/agreg_horpra.css' %}">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.2/css/jquery.dataTables.min.css">
+    <title>Title</title>
+</head>
+
+<body>
+<main>
+    <!-- La imagen institucional -->
+    <div class="center-image">
+        <img src="{% static 'imagenes/SubDirImg.png' %}" alt="" width="600">
+    </div>
+
+    <hr>
+    <h1>Horario de prácticas</h1>
+    <br>
+    <h2>{{ curso.cve_curso_id }} - {{ curso.nombre }}</h2>
+    <form method="POST" action="/guarda_practicas/" class="row g-2" id="formulario">
+        {% csrf_token %}
+        {{ formulario.as_p }}
+        {% if messages %}
+            <div class="alert alert-success" role="alert">
+                Curso registrado exitosamente!
+            </div>
+        {% endif %}
+        <br>
+        <hr>
+        <h2>Ingrese horarios donde corresponda</h2>
+        <hr>
+        <div class="row">
+            <div class="col-md-2">
+                <fieldset>
+                    <legend>Lunes</legend>
+                    <div class="form-group">
+                        <label for="lunes_ini">Inicio:</label>
+                        <input type="time" name="lunes_ini" id="lunes_ini" class="form-control" value="09:00">
+                    </div>
+                    <div class="form-group">
+                        <label for="lunes_fin">Fin:</label>
+                        <input type="time" name="lunes_fin" id="lunes_fin" class="form-control" value="09:00">
+                    </div>
+                </fieldset>
+            </div>
+
+            <div class="col-md-2">
+                <fieldset>
+                    <legend>Martes</legend>
+                    <div class="form-group">
+                        <label for="martes_ini">Inicio:</label>
+                        <input type="time" name="martes_ini" id="martes_ini" class="form-control" value="00:00">
+                    </div>
+                    <div class="form-group">
+                        <label for="martes_fin">Fin:</label>
+                        <input type="time" name="martes_fin" id="martes_fin" class="form-control" value="00:00">
+                    </div>
+                </fieldset>
+            </div>
+            <div class="col-md-2">
+                <fieldset>
+                    <legend>Miércoles</legend>
+                    <div class="form-group">
+                        <label for="miercoles_ini">Inicio:</label>
+                        <input type="time" name="miercoles_ini" id="miercoles_ini" class="form-control" value="00:00">
+                    </div>
+                    <div class="form-group">
+                        <label for="miercoles_fin">Fin:</label>
+                        <input type="time" name="miercoles_fin" id="miercoles_fin" class="form-control" value="00:00">
+                    </div>
+                </fieldset>
+            </div>
+            <div class="col-md-2">
+                <fieldset>
+                    <legend>Jueves</legend>
+                    <div class="form-group">
+                        <label for="jueves_ini">Inicio:</label>
+                        <input type="time" name="jueves_ini" id="jueves_ini" class="form-control" value="00:00">
+                    </div>
+                    <div class="form-group">
+                        <label for="jueves_fin">Fin:</label>
+                        <input type="time" name="jueves_fin" id="jueves_fin" class="form-control" value="00:00">
+                    </div>
+                </fieldset>
+            </div>
+            <div class="col-md-2">
+                <fieldset>
+                    <legend>Viernes</legend>
+                    <div class="form-group">
+                        <label for="viernes_ini">Inicio:</label>
+                        <input type="time" name="viernes_ini" id="viernes_ini" class="form-control" value="00:00">
+                    </div>
+                    <div class="form-group">
+                        <label for="viernes_fin">Fin:</label>
+                        <input type="time" name="viernes_fin" id="viernes_fin" class="form-control" value="00:00">
+                    </div>
+                </fieldset>
+            </div>
+            <div class="col-md-2">
+                <fieldset>
+                    <div class="form-group">
+                        <label for="aula">Aula:</label>
+                        <textarea type="text" name="aula" id="aula" rows="1" class="form-control">Por definir </textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="observaciones">Observaciones:</label>
+                        <textarea type="text" name="observaciones" id="observaciones" rows="2" class="form-control">Por definir </textarea>
+                    </div>
+                </fieldset>
+            </div>
+            <hr>
+            <br>
+            <div>
+                <input type="submit" value="Guardar cambios" class="btn btn-primary" id="guardar">
+                <a class="btn btn-warning" href="{% url 'mostrar_cursos' %}">Cancelar</a>
+            </div>
+        </div>
+    </form>
+</main>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script>
+    $(document).ready(function() {
+        // Selecciona el formulario y el botón "Guardar cambios"
+        var form = $('#my-form');
+        var submitButton = $('#save-button');
+        var cursoId = '{{ curso_id }}';
+
+        // Agrega un controlador de eventos al botón "Guardar cambios"
+        submitButton.on('click', function(event) {
+            event.preventDefault(); // Previene que el formulario se envíe automáticamente
+
+            // Obtiene los datos del formulario
+            var formData = form.serialize();
+
+            // Envía los datos del formulario a la vista "guarda_practicas" utilizando una petición AJAX
+            $.ajax({
+                url: '/ruta/a/guarda_practicas/' + cursoId + '/',
+                type: 'POST',
+                data: formData,
+                success: function(response) {
+                    // Aquí puedes agregar código para manejar la respuesta de la vista
+                    console.log(response);
+                }
+            });
+        });
+    });
+</script>
+
+
+</body>
+</html>

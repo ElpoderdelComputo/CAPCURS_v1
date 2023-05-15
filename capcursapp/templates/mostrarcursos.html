@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+{% load static %}
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+    <!-- Agrega estilo tabla de datos Boostrap -->
+    <link rel="stylesheet" href="{% static 'Boostrap5/css/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'CSS/mostrarcurso.css' %}">
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.3/css/dataTables.jqueryui.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <title>{{ titulo }}</title>
+</head>
+
+<body>
+<main>
+    <!-- La imagen institucional -->
+    <div class="center-image">
+        <img src="{% static 'imagenes/SubDirImg.png' %}" alt="" width="700">
+    </div>
+    <br>
+    <h1>{{ usuario.cve_posgrad }} - {{ usuario.nom_program }}</h1>
+    <h2>Cursos programados Verano 2023</h2>
+    <p></p>
+    <div>
+        {% if messages %}
+            {% for message in messages %}
+                <div{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    </div>
+    <div class="row col-12 justify-content-end pr-0">
+        <a class="btn btn-success col-md-2" href="{% url 'agregar_curso' %}" onclick="guardarSesion()">+ Agregar Curso</a>
+    </div>
+
+    <p></p>
+
+    <table id="registrodecursos" class="display" style="width:100%">
+        <thead>
+        <tr>
+            <th scope="col">ID</th>
+            <th scope="col">Clave de Curso</th>
+            <th scope="col">Nombre del curso</th>
+            <th scope="col">Clave del Profesor</th>
+            <th scope="col">Profesor Titular</th>
+            <th scope="col">Créditos</th>
+            <th scope="col">Aula - Obs</th>
+            <th scope="col">Editar</th>
+            <th scope="col">Eliminar</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for curso in miscursospersonal %}
+            <tr>
+                <!--La función forloop.counter devuelve el número de veces que se ha iterado el ciclo for -->
+                <th scope="row">{{ forloop.counter }}</th>
+                <td>{{ curso.cve_curso_id }}</td>
+                <td>{{ curso.nombre }}</td>
+                <td>{{ curso.cve_academic_id }}</td>
+                <td>{{ curso.nom_academic }} {{ curso.apellidos }}</td>
+                <td>{{ curso.creditos }}</td>
+                <td>{{ curso.observaciones }}</td>
+                <td><a class="btn btn-light" href="{% url 'editar_curso' curso.id %}"><i class="fas fa-pencil-alt"></i></a></td>
+                <td><a class="btn btn-danger" id="eliminar-curso-btn" href="{% url 'eliminar_curso' curso.id %}" style="background-color: #ffffff; color:#ff0000; border-color: transparent;"><i class="fas fa-trash-alt"></i></a></td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    <div id="popup-container"></div>
+    <div>
+        <a class="btn btn-secondary" href="{% url 'vista_previa' usuario.nom_program %}">Vista previa</a>
+        <a class="btn btn-secondary" href="{% url 'guardar_enviar' usuario.nom_program %}">Guardar y Enviar </a>
+    </div>
+
+</main>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.3/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.3/js/dataTables.jqueryui.min.js"></script>
+
+
+<script>
+    $(document).ready(function () {
+        $('#registrodecursos').DataTable();
+    });
+</script>
+
+<script>
+  function guardarSesion() {
+    sessionStorage.setItem('vieneDeMostrarCurso', 'true');
+  }
+</script>
+
+<script>
+    function limpiarFormulario() {
+        document.getElementById('cve_curso').value = '';
+        document.getElementById('creditos').value = '';
+        document.getElementById('cve_academic').value = '';
+    }
+    limpiarFormulario();
+</script>
+
+<script>
+    const eliminarCursoBtn = document.getElementById('eliminar-curso-btn');
+    const popupContent = document.querySelector('.popup-content');
+    const closeBtns = document.querySelectorAll('.close');
+
+    console.log('eliminarCursoBtn:', eliminarCursoBtn);
+    console.log('popupContent:', popupContent);
+    console.log('closeBtns:', closeBtns);
+
+    eliminarCursoBtn.addEventListener('click', () => {
+        console.log('Se hizo clic en el botón "eliminar-curso-btn"');
+        popupContent.classList.add('show-popup');
+    });
+
+    closeBtns.forEach((btn) => {
+        btn.addEventListener('click', () => {
+            console.log('Se hizo clic en el botón "close"');
+            popupContent.classList.remove('show-popup');
+        });
+    });
+
+</script>
+
+</body>
+</html>
+

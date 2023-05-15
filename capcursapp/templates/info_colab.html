@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<div class="form-group">
+    <div style="display:flex; align-items:center;">
+        <label for="cve_academic" style="display:inline-block;width:200px;">Selecciona una Opción:</label>
+        <select name="cve_academic" id="cve_academic" class="form-select" style="width:calc(100% - 150px);">
+            <option value="" selected disabled>-- Selecciona una opción --</option>
+            {% for academico in academicos %}
+                <option value="{{ academico.cve_academic }}"> {{ academico.cve_academic }}: {{ academico.nombres }} {{ academico.apellidos }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <br>
+    <div style="display:flex; align-items:center;">
+        <label for="nom_academic" style="display:inline-block;width:200px;">Nombre:</label>
+        <input type="text" name="nom_academic" id="nom_academic"  class="form-control" style="width:calc(100% - 150px);" readonly>
+    </div>
+    <br>
+    <div style="display:flex; align-items:center;">
+        <label for="apellidos" style="display:inline-block;width:200px;">Apellidos:</label>
+        <input type="text" name="apellidos" id="apellidos"  class="form-control" style="width:calc(100% - 150px);" readonly>
+    </div>
+    <br>
+    <div style="display:flex; align-items:center;">
+        <label for="participacion" style="display:inline-block;width:200px;">Participación:</label>
+        <input type="text" name="participacion" id="participacion"  class="form-control" style="width:calc(100% - 150px);" value="Titular" readonly>
+    </div>
+    <br>
+</div>
+</body>
+</html>

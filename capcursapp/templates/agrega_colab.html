@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="es">
+{% load static %}
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+    <!-- Agrega estilo tabla de datos Boostrap -->
+    <link rel="stylesheet" href="{% static 'Boostrap5/css/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'CSS/agregacolab.css' %}">
+    <title>{{ titulo }}</title>
+</head>
+
+<body>
+<div  class="emergente">
+    <form method="POST" action="{% url 'guardar_colaboradores' %}" class="row g-2" id="formulario">
+        {% csrf_token %}
+        {{ formulario.as_p }}
+        {% if success_message %}
+            <div class="alert alert-success">
+                {{ success_message }}
+            </div>
+        {% endif %}
+
+        <h1 content="center"> Colaboradores del curso</h1>
+        <div style="text-align: center;">
+            <div class="form-row">
+                <div>
+                    <label for="cve_curso"></label>
+                    <input type="text" name="cve_curso" id="cve_curso" value="{{ curso.cve_curso }}" class="form-control1" readonly>
+                    <label for="nombre"></label>
+                    <textarea type="text" name="nombre" id="nombre" class="form-control2 textarea-estilo" readonly>{{ curso.nombre }}</textarea>
+                </div>
+            </div>
+        </div>
+        <div class="container" content="center">
+            <div class="row border-custom">
+                <div class="row">
+                    <div class="col-md-6">
+                        <fieldset>
+                            <legend style="text-align: center;">Profesor</legend>
+                            <hr>
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <div>
+                                        <label for="cve_academic"></label>
+                                        <select name="cve_academic" id="cve_academic" class="form-select">
+                                            <option value="" selected disabled>-- Selecciona un Profesor --</option>
+                                            {% for academico in academicos %}
+                                                <option value="{{ academico.cve_academic }}"> {{ academico.cve_academic }}: {{ academico.nombres }} {{ academico.apellidos }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <br>
+                                    <div>
+                                        <button type="button" class="btn btn-success" id="agregar"><span class="plus-symbol">+ Agregar</span></button>
+                                    </div>
+                                    <br>
+                                </div>
+                            </div>
+                        </fieldset>
+                    </div>
+                    <div class="col-md-6">
+                        <fieldset>
+                            <legend>Profesores seleccionados</legend>
+                            <hr>
+                            <table class="table" id="tabla-profesores">
+                                <thead>
+                                <tr>
+                                    <th>Clave</th>
+                                    <th>Nombre</th>
+                                    <th></th>
+                                </tr>
+                                </thead>
+                                <tbody id="tabla-profesores-body">
+
+                                </tbody>
+                            </table>
+                        </fieldset>
+                        <input type="hidden" name="profesores_seleccionados" id="profesores_seleccionados" value="[]">
+                    </div>
+                </div>
+                <br>
+
+                <hr>
+            </div>
+        </div>
+        <hr>
+        <div class="form-row">
+            <button type="button" class="btn btn-primary" id="btn-guardar">Guardar</button>
+            <a class="btn btn-danger" onclick="history.back()">Cancelar</a>
+        </div>
+    </form>
+</div >
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script>
+    $(document).ready(function() {
+        $('#cve_curso').change(function() {
+            var selectedValue = $(this).val();
+            $.ajax({
+                url: '/buscar_elemento/',
+                type: 'GET',
+                data: {
+                    'elemento': selectedValue,
+                    'tipo_elemento': 'curso'
+                },
+                dataType: 'json',
+                success: function(data) {
+                    $('#cve_program').val(data['cve_program']);
+                    $('#nombre').val(data['nombre']);
+                    $('#creditos').val(data['creditos']);
+                    $('#cve_curso').val(data['cve_curso']);
+                    $('#gpo_670').val(data['gpo_670']);
+                    $('#per_vi_cur').val(data['per_vi_cur']);
+                    $('#ano_vi_cur').val(data['ano_vi_cur']);
+                },
+                error: function() {
+                    alert('Hubo un error al buscar el curso seleccionado');
+                }
+            });
+        });
+
+        $('#cve_academic').change(function() {
+            var selectedValue = $(this).val();
+            $.ajax({
+                url: '/buscar_elemento/',
+                type: 'GET',
+                data: {
+                    'elemento': selectedValue,
+                    'tipo_elemento': 'profesor'
+                },
+                dataType: 'json',
+                success: function(data) {
+                    $('#nom_academic').val(data['nom_academic']);
+                    $('#apellidos').val(data['apellidos']);
+                    $('#correo').val(data['correo']);
+                },
+                error: function() {
+                    alert('Hubo un error al buscar el profesor seleccionado');
+                }
+            });
+        });
+    });
+</script>
+
+<!--Boton para cancelar -->
+
+<script>
+    // agregar el parámetro 'from' a la URL actual
+    if (window.location.href.indexOf('?from=') === -1) {
+        var from = window.location.pathname === '/editar_curso/' ? 'editar_curso' : 'agregar_curso';
+        window.history.replaceState({}, '', window.location.href + '?from=' + from);
+    }
+    // Initialize empty array for selected profesors
+    var profesoresSeleccionados = [];
+
+    $(document).ready(function() {
+        // Add selected profesor to array when "Agregar" button is clicked
+
+        $('#agregar').click(function() {
+            var cveAcademic = $('#cve_academic').val();
+            var nombresApellidos = $('#cve_academic option:selected').text().substring(8);
+
+            if (cveAcademic && !profesoresSeleccionados.includes(cveAcademic)) {
+                var row = '<tr><td>' + cveAcademic + '</td><td>' + nombresApellidos + '</td><td><button type="button" class="btn btn-delete eliminar"><i class="fas fa-trash"></i></button></td></tr>';
+                $('#tabla-profesores-body').append(row);
+                profesoresSeleccionados.push(cveAcademic);
+                // Limpiar y restablecer el campo del select
+                $('#cve_academic').val('');
+            }
+            else if (cveAcademic) {
+                alert('El profesor ya ha sido seleccionado');
+            }
+
+        });
+
+        // Remove selected profesor from array when "Eliminar" button is clicked
+        $('#tabla-profesores-body').on('click', '.eliminar', function() {
+            var row = $(this).closest('tr');
+            var cveAcademic = row.find('td:first').text();
+            var index = profesoresSeleccionados.indexOf(cveAcademic);
+            if (index !== -1) {
+                profesoresSeleccionados.splice(index, 1);
+            }
+            row.remove();
+        });
+
+         $('#btn-guardar').click(function(event) {
+            event.preventDefault();
+            $('#profesores_seleccionados').val(JSON.stringify(profesoresSeleccionados));
+            $.post('/guardar_colaboradores/', $('#formulario').serialize())
+                .done(function(response) {
+                })
+                .fail(function() {
+                    alert('Error al enviar el formulario');
+                });
+            var from = getUrlParameter('from');
+            if (from === 'agregar_curso') {
+                window.location.href = '{% url "agregar_curso" %}';
+            }
+        });
+
+        // agregar el parámetro 'from' a la URL actual
+        if (window.location.href.indexOf('?from=') === -1) {
+            var from = window.location.pathname === '/editar_curso/' ? 'editar_curso' : 'agregar_curso';
+            window.history.replaceState({}, '', window.location.href + '?from=' + from);
+        }
+
+        $('#danger').click(function(event) {
+            event.preventDefault();
+            var from = getUrlParameter('from');
+            if (from === 'agregar_curso') {
+                window.location.href = '{% url "agregar_curso" %}';
+            }
+        });
+
+        function getUrlParameter(name) {
+            name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
+            var regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
+            var results = regex.exec(location.search);
+            console.log("Valor del parámetro '"+name+"': "+(results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '))));
+            return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
+        }
+    });
+</script>
+
+</body>
+</html>
+
+
+
+
+
