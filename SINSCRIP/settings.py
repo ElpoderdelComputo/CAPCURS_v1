@@ -104,9 +104,13 @@ DATABASES = {
 # Password validation
 # https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators
 AUTHENTICATION_BACKENDS = [
-    'django.contrib.auth.backends.ModelBackend',
-    'capcursapp.backends.CoordinacionesBackend',
+    'django.contrib.auth.backends.ModelBackend',  # Backend predeterminado de Django
+    'capcursapp.backends.CoordinacionesBackend',  # Backend personalizado para el modelo Coordinaciones
 ]
+
+AUTH_USER_MODEL = 'capcursapp.Coordinaciones'
+
+
 
 AUTH_PASSWORD_VALIDATORS = [
     {

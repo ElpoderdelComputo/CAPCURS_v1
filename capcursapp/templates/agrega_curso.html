@@ -36,7 +36,7 @@
         <div class="container" content="center">
             <div class="row border-custom-1">
                 <div class="row">
-                    <div class="col-md-6">
+                    <div class="col-md-5">
                         <fieldset>
                             <legend style="text-align: center;">Curso</legend>
                             <hr>
@@ -44,8 +44,8 @@
                                 <div class="form-group">
                                     <div style="display:flex; align-items:center; justify-content: center;">
                                         <label for="cve_curso" style="width:150px;">Clave:</label>
-                                        <select name="cve_curso" id="cve_curso" class="form-select" style="width:calc(100% - 150px);" onchange="guardarDatos(); document.getElementById('cve_curso').value = this.value;">
-                                            <option value="" selected disabled>-- Selecciona una opción --</option>
+                                        <select name="cve_curso" id="cve_curso" class="form-select" style="width:calc(100% - 150px);">
+                                            <option value="" selected disabled>-- Selecciona un Curso --</option>
                                             {% for curso in loscursos %}
                                                 <option value="{{ curso.cve_curso }}" {% if curso.cve_curso == formulario.cve_curso.value %}selected{% endif %}>
                                                     {{ curso.cve_curso }} : {{ curso.nombre }}
@@ -65,24 +65,40 @@
                             </div>
                         </fieldset>
                     </div>
-                    <div class="col-md-6">
+                    <!-- Cuadro del profesor titular -->
+                    <div class="col-md-7">
                         <fieldset>
                             <legend style="text-align: center;">Profesor titular</legend>
                             <hr>
-                            <div class="col-md-12">
-                                <div class="form-group">
-                                    <div style="display:flex; align-items:center;">
-                                        <label style="width:calc(100% - 50px);">Clave</label>
-                                        <label for="cve_academic"></label><select name="cve_academic" id="cve_academic" class="form-select" style="width:500px" onchange="verificarCursoProfesor()">
-                                        <option value="" selected disabled>-- Selecciona una opción --</option>
-                                        {% for academico in academicos %}
-                                            <option value="{{ academico.cve_academic }}"> {{ academico.cve_academic }}: {{ academico.nombres }} {{ academico.apellidos }}</option>
-                                        {% endfor %}
-                                    </select>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <div style="display:flex; align-items:center;">
+                                            <label style="width:calc(100% - 80px);">Programa</label>
+                                            <label for="cve_program"></label>
+                                            <select name="cve_program" id="cve_program" class="form-select" style="width:150px" onchange="actualizarProfesores()">
+                                                <option value="" selected disabled>-- Selecciona un Programa --</option>
+                                                {% for clave, valor in programas.items %}
+                                                    <option value="{{ clave }}">{{ valor }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-8">
+                                    <div class="form-group">
+                                        <div style="display:flex; align-items:center;">
+                                            <label style="width:100%">Clave</label>
+                                            <label for="cve_academic"></label>
+                                            <select name="cve_academic" id="cve_academic" class="form-select" style="width:400px" onchange="verificarCursoProfesor()">
+                                                <option value="" selected disabled>-- Selecciona un Profesor --</option>
+                                            </select>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-
+                            <br>
                             <!-- Boton para agregar colaboradores -->
                             <div class="container" content="center">
                                 <div class="row">
@@ -117,6 +133,7 @@
                 </div>
             </div>
         </div>
+
         <!-- Fin-->
         <div class="col-md-12">
             <legend>Ingrese horarios donde corresponda</legend>
@@ -302,13 +319,14 @@
                 </div>
             </div>
         </div>
+
         <!-- Limites -->
         <hr>
         <br>
         <div class="row" content="center">
             <div class="col-md-10">
-                 <input type="submit" value="Guardar curso" class="btn btn-primary" id="guardar">
-            <a class="btn btn-warning" href="{% url 'mostrar_cursos' %}">Cancelar</a>
+                <input type="submit" value="Guardar curso" class="btn btn-primary" id="guardar">
+                <a class="btn btn-warning" href="{% url 'mostrar_cursos' %}">Cancelar</a>
             </div>
             <div class="col-md-2">
                 <button type="button" class="btn btn-outline-dark" id="limpiar-formulario">Limpiar formulario</button>
@@ -319,9 +337,10 @@
 </main>
 
 <!-- Scripts asociados al html -->
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
 <script src="//cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.2/jquery-confirm.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
 <script src="{% static 'JS/agregarcurso.js' %}"></script>
 
 <!-- script para ver si viene de mostrar_cursos y resetea el formulario-->
@@ -341,6 +360,64 @@
     });
 </script>
 
+<!-- Scripts que verifica si un curso con mismo cve academic y curso -->
+<script>
+    function verificarCursoProfesor() {
+        console.log('inicio la funcion')
+        // Obtenemos los valores de cve_curso y cve_academic
+        var cve_curso = document.getElementById('cve_curso').value;
+        var cve_academic = document.getElementById('cve_academic').value;
+        console.log(cve_curso,cve_academic)
+
+        // Hacemos una petición AJAX al servidor para verificar si la combinación ya existe
+        $.ajax({
+            url: '/verificar_curso_existente/',
+            type: 'GET',
+            data: { cve_curso: cve_curso, cve_academic: cve_academic },
+            dataType: 'json',
+            success: function(response) {
+                 var errorElement = document.getElementById('error-cve-curso-profesor');
+                if (response.existe) {
+                    // Verificamos si el elemento existe antes de intentar acceder a su propiedad 'style'
+                    if (errorElement) {
+                        // Si la combinación ya existe, mostramos un mensaje de error
+                        errorElement.style.display = 'block';
+                        errorElement.textContent = "El curso y el profesor que ha seleccionado ya ha sido registrado anteriormente.";
+                    }
+                } else {
+                    // Verificamos si el elemento existe antes de intentar acceder a su propiedad 'style'
+                    if (errorElement) {
+                        // Si la combinación no existe, ocultamos el mensaje de error
+                        errorElement.style.display = 'none';
+                    }
+                }
+            },
+            error: function() {
+                alert("Ha ocurrido un error.");
+            }
+        });
+    }
+</script>
+
+<script>
+    function actualizarProfesores() {
+        var selectedProgram = document.getElementById("cve_program").value;  // Obtener el valor seleccionado del campo cve_program
+        var selectAcademic = document.getElementById("cve_academic");
+
+        // Limpiar opciones anteriores
+        selectAcademic.innerHTML = "<option value='' selected disabled>-- Selecciona una opción --</option>";
+
+        // Filtrar y agregar las opciones de profesores correspondientes al programa seleccionado
+        {% for academico in academicos %}
+            if ("{{ academico.cve_program }}" === selectedProgram) {
+                var option = document.createElement("option");
+                option.value = "{{ academico.cve_academic }}";
+                option.text = "{{ academico.cve_academic }}: {{ academico.nombres }} {{ academico.apellidos }}";
+                selectAcademic.appendChild(option);
+            }
+        {% endfor %}
+    }
+</script>
 
 <!-- script para buscar curso selecionado y profesor-->
 <script>
@@ -408,7 +485,7 @@
                     if (errorElement) {
                         // Si la combinación ya existe, mostramos un mensaje de error
                         errorElement.style.display = 'block';
-                        errorElement.innerText = "El curso y el profesor que ha seleccionado ya ha sido registrado anteriormente.";
+                        errorElement.textContent = "El curso y el profesor que ha seleccionado ya ha sido registrado anteriormente.";
                     }
                 } else {
                     // Verificamos si el elemento existe antes de intentar acceder a su propiedad 'style'
@@ -426,6 +503,7 @@
         });
     }
 </script>
+
 
 
 <!-- Scripts que actualiza el valor cve_curso para agregar colabs -->
@@ -453,6 +531,7 @@
             localStorage.removeItem('cve_curso');
             localStorage.removeItem('creditos');
             localStorage.removeItem('cve_academic');
+            localStorage.removeItem('cve_program');
         });
 
         // Agregar evento change a los campos del formulario
@@ -460,18 +539,23 @@
             // Actualizar los valores de localStorage
             localStorage.setItem('cve_curso', $('#cve_curso').val());
             localStorage.setItem('creditos', $('#creditos').val());
+            localStorage.setItem('cve_program', $('#cve_program').val());
             localStorage.setItem('cve_academic', $('#cve_academic').val());
         });
 
         // Cargar los valores de localStorage al cargar la página
         const cveCurso = localStorage.getItem('cve_curso');
         const creditos = localStorage.getItem('creditos');
+        const cve_program = localStorage.getItem('cve_program');
         const cveAcademic = localStorage.getItem('cve_academic');
         if (cveCurso) {
             $('#cve_curso').val(cveCurso);
         }
         if (creditos) {
             $('#creditos').val(creditos);
+        }
+        if (cveAcademic) {
+            $('#cve_program').val(cve_program);
         }
         if (cveAcademic) {
             $('#cve_academic').val(cveAcademic);

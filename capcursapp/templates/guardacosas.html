@@ -1,24 +1,824 @@
+<!DOCTYPE html>
+<html lang="es">
+{% load static %}
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+    <!-- Agrega estilo tabla de datos Boostrap -->
+    <link rel="stylesheet" href="{% static 'Boostrap5/css/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'CSS/agregacolab.css' %}">
+    <title>{{ titulo }}</title>
+</head>
+
+<body>
+<div  class="emergente">
+    <form method="POST" action="{% url 'guardar_colaboradores' %}" class="row g-2" id="formulario">
+        {% csrf_token %}
+        {{ formulario.as_p }}
+        {% if success_message %}
+            <div class="alert alert-success">
+                {{ success_message }}
+            </div>
+        {% endif %}
+
+        <h1 content="center"> Colaboradores del curso</h1>
+        <div style="text-align: center;">
+            <div class="form-row">
+                <div>
+                    <label for="cve_curso"></label>
+                    <input type="text" name="cve_curso" id="cve_curso" value="{{ curso.cve_curso_id }}" class="form-control1" readonly>
+                    <label for="nombre"></label>
+                    <textarea type="text" name="nombre" id="nombre" class="form-control2 textarea-estilo" readonly>{{ curso.nombre }}</textarea>
+                </div>
+            </div>
+        </div>
+        <div class="container" content="center">
+            <div class="row border-custom">
+                <div class="row">
+                    <div class="col-md-6">
+                        <fieldset>
+                            <legend style="text-align: center;">Profesor</legend>
+                            <hr>
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <div>
+                                        <label for="cve_academic"></label>
+                                        <select name="cve_academic" id="cve_academic" class="form-select">
+                                            <option value="" selected disabled>-- Selecciona un Profesor --</option>
+                                            {% for academico in academicos %}
+                                                <option value="{{ academico.cve_academic }}"> {{ academico.cve_academic }}: {{ academico.nombres }} {{ academico.apellidos }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <br>
+                                    <div>
+                                        <button type="button" class="btn btn-success" id="agregar"><span class="plus-symbol">+ Agregar</span></button>
+                                    </div>
+                                    <br>
+                                </div>
+                            </div>
+                        </fieldset>
+                    </div>
+                    <div class="col-md-6">
+                        <fieldset>
+                            <legend>Profesores seleccionados</legend>
+                            <hr>
+                            <table class="table" id="tabla-profesores">
+                                <thead>
+                                <tr>
+                                    <th>Clave</th>
+                                    <th>Nombre</th>
+                                    <th></th>
+                                </tr>
+                                </thead>
+                                <tbody id="tabla-profesores-body">
+
+                                </tbody>
+                            </table>
+                        </fieldset>
+                        <input type="hidden" name="profesores_seleccionados" id="profesores_seleccionados" value="[]">
+                    </div>
+                </div>
+                <br>
+
+                <hr>
+            </div>
+        </div>
+        <hr>
+        <div class="form-row">
+            <button type="button" class="btn btn-primary" id="btn-guardar">Guardar</button>
+            <a class="btn btn-danger" onclick="history.back()">Cancelar</a>
+        </div>
+    </form>
+</div >
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script>
+    $(document).ready(function() {
+        $('#cve_curso').change(function() {
+            var selectedValue = $(this).val();
+            $.ajax({
+                url: '/buscar_elemento/',
+                type: 'GET',
+                data: {
+                    'elemento': selectedValue,
+                    'tipo_elemento': 'curso'
+                },
+                dataType: 'json',
+                success: function(data) {
+                    $('#cve_program').val(data['cve_program']);
+                    $('#nombre').val(data['nombre']);
+                    $('#creditos').val(data['creditos']);
+                    $('#cve_curso').val(data['cve_curso']);
+                    $('#gpo_670').val(data['gpo_670']);
+                    $('#per_vi_cur').val(data['per_vi_cur']);
+                    $('#ano_vi_cur').val(data['ano_vi_cur']);
+                },
+                error: function() {
+                    alert('Hubo un error al buscar el curso seleccionado');
+                }
+            });
+        });
+
+        $('#cve_academic').change(function() {
+            var selectedValue = $(this).val();
+            $.ajax({
+                url: '/buscar_elemento/',
+                type: 'GET',
+                data: {
+                    'elemento': selectedValue,
+                    'tipo_elemento': 'profesor'
+                },
+                dataType: 'json',
+                success: function(data) {
+                    $('#nom_academic').val(data['nom_academic']);
+                    $('#apellidos').val(data['apellidos']);
+                    $('#correo').val(data['correo']);
+                },
+                error: function() {
+                    alert('Hubo un error al buscar el profesor seleccionado');
+                }
+            });
+        });
+    });
+</script>
+
+<!--Boton para cancelar -->
+
+<script>
+    // agregar el parámetro 'from' a la URL actual
+    if (window.location.href.indexOf('?from=') === -1) {
+        var from = window.location.pathname === '/editar_curso/' ? 'editar_curso' : 'agregar_curso';
+        window.history.replaceState({}, '', window.location.href + '?from=' + from);
+    }
+    // Initialize empty array for selected profesors
+    var profesoresSeleccionados = [];
+
+    $(document).ready(function() {
+        // Add selected profesor to array when "Agregar" button is clicked
+
+        $('#agregar').click(function() {
+            var cveAcademic = $('#cve_academic').val();
+            var nombresApellidos = $('#cve_academic option:selected').text().substring(8);
+
+            if (cveAcademic && !profesoresSeleccionados.includes(cveAcademic)) {
+                var row = '<tr><td>' + cveAcademic + '</td><td>' + nombresApellidos + '</td><td><button type="button" class="btn btn-delete eliminar"><i class="fas fa-trash"></i></button></td></tr>';
+                $('#tabla-profesores-body').append(row);
+                profesoresSeleccionados.push(cveAcademic);
+                // Limpiar y restablecer el campo del select
+                $('#cve_academic').val('');
+            }
+            else if (cveAcademic) {
+                alert('El profesor ya ha sido seleccionado');
+            }
+        });
+
+        // Remove selected profesor from array when "Eliminar" button is clicked
+        $('#tabla-profesores-body').on('click', '.eliminar', function() {
+            var row = $(this).closest('tr');
+            var cveAcademic = row.find('td:first').text();
+            var index = profesoresSeleccionados.indexOf(cveAcademic);
+            if (index !== -1) {
+                profesoresSeleccionados.splice(index, 1);
+            }
+            row.remove();
+
+        });
+
+        $('#btn-guardar').click(function(event) {
+            event.preventDefault();
+            $('#profesores_seleccionados').val(JSON.stringify(profesoresSeleccionados));
+
+            $.post('/guardar_colaboradores/', $('#formulario').serialize())
+                .done(function(response) {
+                })
+                .fail(function() {
+                    alert('Error al enviar el formulario');
+                });
+            var from = getUrlParameter('from');
+            window.location.href = '{% url "editar_curso" curso.id %}';
+        });
+
+        // agregar el parámetro 'from' a la URL actual
+        if (window.location.href.indexOf('?from=') === -1) {
+            var from = window.location.pathname === '/editar_curso/' ? 'editar_curso' : 'agregar_curso';
+            window.history.replaceState({}, '', window.location.href + '?from=' + from);
+        }
+
+        $('#danger').click(function(event) {
+            event.preventDefault();
+            var from = getUrlParameter('from');
+            window.location.href = '{% url "editar_curso" curso.id %}';
+        });
+
+        function getUrlParameter(name) {
+            name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
+            var regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
+            var results = regex.exec(location.search);
+            console.log("Valor del parámetro '"+name+"': "+(results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '))));
+            return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
+        }
+    });
+</script>
+
+</body>
+</html>
+
+
+def generarPDF(request):
+    if request.method == 'POST':
+        nom_program = request.POST.get('nom_program')
+        usuario = Coordinaciones.objects.get(nom_program=nom_program)
+        cursos_posgra = Capcurs.objects.filter(cve_program=usuario.cve_program)
+
+        # Obtener la plantilla HTML
+        template = get_template('guardar_enviar.html')
+        context = {'cursos_posgra': cursos_posgra}
+
+        # Renderizar el HTML con los datos del contexto
+        html = template.render(context)
+
+        # Crear un objeto de BytesIO para almacenar el PDF resultante
+        result = BytesIO()
+
+        # Crear el objeto canvas con orientación horizontal
+        pdf = canvas.Canvas(result, pagesize=landscape(letter))
+
+        # Convertir el HTML a PDF utilizando ReportLab
+        pdf.setLineWidth(0.5)
+        pdf.setFont('Helvetica', 12)
+        pdf.drawString(100, 700, 'Título del PDF')
+        pdf.drawString(100, 680, 'Subtítulo del PDF')
+        pdf.drawString(100, 660, 'Fecha: 19 de mayo de 2023')
+        pdf.drawString(100, 640, html)  # Agrega el contenido HTML al PDF
+
+        # Finalizar el objeto canvas
+        pdf.showPage()
+        pdf.save()
+
+        # Crear un archivo temporal para almacenar el PDF
+        temp_file = tempfile.NamedTemporaryFile(delete=False)
+        temp_file.write(result.getvalue())
+        temp_file.close()
+
+        # Envía el correo electrónico
+        destinatario = ['rodriguez.rosales@colpos.mx']
+        asunto = 'Reporte PDF'
+        mensaje = 'Se adjunta el reporte PDF'
+
+        # Crea el objeto MIME del correo electrónico
+        msg = MIMEMultipart()
+        msg['Subject'] = asunto
+        msg['From'] = 'tudireccion@correo.com'
+        msg['To'] = ', '.join(destinatario)
+
+        # Adjunta el PDF al correo electrónico
+        with open(temp_file.name, 'rb') as f:
+            attach = MIMEApplication(f.read(), _subtype="pdf")
+            attach.add_header('Content-Disposition', 'attachment', filename="documento.pdf")
+            msg.attach(attach)
+
+        # Agrega el cuerpo del mensaje
+        msg.attach(MIMEText(mensaje, 'plain'))
+
+        # Envía el correo electrónico utilizando SMTP
+        try:
+            smtp_server = 'smtp.gmail.com'
+            smtp_port = 587
+            smtp_usuario = 'rodriguez.rosales.jose91@gmail.com'
+            smtp_password = 'brzrvigtfzqckepa'
+
+            smtp = smtplib.SMTP(smtp_server, smtp_port)
+            smtp.ehlo()
+            smtp.starttls()
+            smtp.login(smtp_usuario, smtp_password)
+            smtp.sendmail(smtp_usuario, destinatario, msg.as_string())
+            smtp.quit()
+
+            # Borra el archivo temporal
+            os.unlink(temp_file.name)
+
+            return HttpResponse('Correo electrónico enviado correctamente.')
+        except Exception as e:
+            # Borra el archivo temporal
+            os.unlink(temp_file.name)
+
+            return HttpResponse(f'Error al enviar el correo electrónico: {str(e)}')
+
+    return HttpResponse('Error al generar el PDF')
+
+
+<!doctype html>
+<html lang="en">
+{% load static %}
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+    <!-- Agrega estilo tabla de datos Boostrap -->
+    <link rel="stylesheet" href="{% static 'Boostrap5/css/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'CSS/agregacurso.css' %}">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.2/css/jquery.dataTables.min.css">
+    <title>{{ titulo }}</title>
+</head>
+
+<body>
+<main>
+
+    <!-- La imagen institucional -->
+    <div class="center-image">
+        <img src="{% static 'imagenes/SubDirImg.png' %}" alt="" width="600">
+    </div>
+    <hr>
+    <h1> {{ usuario.cve_posgrad }} - {{ usuario.nom_program }}</h1>
+    <legend id="error-cve-curso-profesor" style="display: none; color: red;">La combinación de clave de curso y clave académica ya existe en la base de datos.</legend>
+    <br>
+    <!-- <form method="POST" action="/agregar_curso/" class="row g-2" id="formulario"> -->
+    <form action="{% url 'agregar_curso' %}?from=agregar_curso" method="POST" class="row g-2"  id="formulario">
+        {% csrf_token %}
+        {{ formulario.as_p }}
+        {% if messages %}
+            <div class="alert alert-success" role="alert">
+                Curso registrado exitosamente!
+            </div>
+        {% endif %}
+        <div class="container" content="center">
+            <div class="row border-custom-1">
+                <div class="row">
+                    <div class="col-md-6">
+                        <fieldset>
+                            <legend style="text-align: center;">Curso</legend>
+                            <hr>
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <div style="display:flex; align-items:center; justify-content: center;">
+                                        <label for="cve_curso" style="width:150px;">Clave:</label>
+                                        <select name="cve_curso" id="cve_curso" class="form-select" style="width:calc(100% - 150px);">
+                                            <option value="" selected disabled>-- Selecciona una opción --</option>
+                                            {% for curso in loscursos %}
+                                                <option value="{{ curso.cve_curso }}" {% if curso.cve_curso == formulario.cve_curso.value %}selected{% endif %}>
+                                                    {{ curso.cve_curso }} : {{ curso.nombre }}
+                                                </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <br>
+                                    <div style="display:flex; align-items:center;">
+                                        <label for="creditos" style="display:inline-block;width:150px;">Créditos:</label>
+                                        <input type="text" name="creditos" id="creditos" class="form-control_1" style="width:calc(100% - 150px);" readonly>
+                                    </div>
+                                    <br>
+                                    <br>
+                                    <br>
+                                </div>
+                            </div>
+                        </fieldset>
+                    </div>
+                    <div class="col-md-6">
+                        <fieldset>
+                            <legend style="text-align: center;">Profesor titular</legend>
+                            <hr>
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <div style="display:flex; align-items:center;">
+                                        <label style="width:calc(100% - 50px);">Clave</label>
+                                        <label for="cve_academic"></label><select name="cve_academic" id="cve_academic" class="form-select" style="width:500px" onchange="verificarCursoProfesor()">
+                                        <option value="" selected disabled>-- Selecciona una opción --</option>
+                                        {% for academico in academicos %}
+                                            <option value="{{ academico.cve_academic }}"> {{ academico.cve_academic }}: {{ academico.nombres }} {{ academico.apellidos }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Boton para agregar colaboradores -->
+                            <div class="container" content="center">
+                                <div class="row">
+                                    {% if formulario.cve_curso.value %}
+                                        <div>
+                                            <a class="btn btn-outline-secondary" href="{% url 'agregar_colab' cve_curso='' %}?from=agregar_curso" id="btnAgregarColaboradores">Agregar Colaboradores</a>
+                                        </div>
+                                    {% else %}
+                                        <div>
+                                            <a class="btn btn-secondary" id="btnAgregarColaboradores" disabled>+ Colaboradores</a>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </fieldset>
+                    </div>
+                    <!-- Tabla desplegable si existen colabs-->
+                    <div class="tabla-colabs-container">
+                        <legend>Colaboradores</legend>
+                        <table class="table" id="tabla-colabs">
+                            <thead>
+                            <tr>
+                                <th>Clave</th>
+                                <th>Nombre</th>
+                            </tr>
+                            </thead>
+                            <tbody id="tabla-colabs-body">
+
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Fin-->
+        <div class="col-md-12">
+            <legend>Ingrese horarios donde corresponda</legend>
+            <!-- Limites -->
+            <div class="container" content="center">
+                <div class="row border-custom">
+                    <div class="row">
+                        <div class="col-md-1">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <label></label>
+                                </div>
+                                <div class="col-md-12">
+                                    <label for="teoria"></label><input type="text" disabled name="teoria" id="teoria" style="color: #0a0a0a; border: none; background-color: transparent; font-size: large;"  class="form-control" value="Teoría">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <label>Lunes</label>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="lunes_ini"></label>
+                                    <input type="time" name="lunes_ini" id="lunes_ini" class="form-control" value="00:00">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="lunes_fin"></label>
+                                    <input type="time" name="lunes_fin" id="lunes_fin" class="form-control" value="00:00" onblur="validarHorario('lunes')">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <label>Martes</label>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="martes_ini"></label>
+                                    <input type="time" name="martes_ini" id="martes_ini" class="form-control" value="00:00">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="martes_fin"></label>
+                                    <input type="time" name="martes_fin" id="martes_fin" class="form-control" value="00:00" onblur="validarHorario('martes')">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <label>Miércoles</label>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="miercoles_ini"></label>
+                                    <input type="time" name="miercoles_ini" id="miercoles_ini" class="form-control" value="00:00">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="miercoles_fin"></label>
+                                    <input type="time" name="miercoles_fin" id="miercoles_fin" class="form-control" value="00:00" onblur="validarHorario('miercoles')">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <label>Jueves</label>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="jueves_ini"></label>
+                                    <input type="time" name="jueves_ini" id="jueves_ini" class="form-control" value="00:00">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="jueves_fin"></label>
+                                    <input type="time" name="jueves_fin" id="jueves_fin" class="form-control" value="00:00" onblur="validarHorario('jueves')">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <label>Viernes</label>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="viernes_ini"></label>
+                                    <input type="time" name="viernes_ini" id="viernes_ini" class="form-control" value="00:00">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="viernes_fin"></label>
+                                    <input type="time" name="viernes_fin" id="viernes_fin" class="form-control" value="00:00" onblur="validarHorario('viernes')">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <label>Aula-Observaciones</label>
+                                </div>
+                                <div class="col-md-12">
+                                    <label for="observaciones"></label><textarea type="text" name="observaciones" id="observaciones" rows="1" class="form-control">Por definir </textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-1">
+                            <div class="row">
+                                <div class="col-md-12">
+
+                                </div>
+                                <div class="col-md-12">
+                                    <label for="practica"></label><input type="text" disabled name="practica" id="practica" style="color: #0a0a0a; border: none; background-color: transparent; font-size: large;" class="form-control" value="Práctica">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <label for="lunes_inip"></label>
+                                    <input type="time" name="lunes_inip" id="lunes_inip" class="form-control" value="00:00">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="lunes_finp"></label>
+                                    <input type="time" name="lunes_finp" id="lunes_finp" class="form-control" value="00:00" onblur="validarHorario('lunes')">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <label for="martes_inip"></label>
+                                    <input type="time" name="martes_inip" id="martes_inip" class="form-control" value="00:00">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="martes_finp"></label>
+                                    <input type="time" name="martes_finp" id="martes_finp" class="form-control" value="00:00" onblur="validarHorario('martes')">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <label for="miercoles_inip"></label>
+                                    <input type="time" name="miercoles_inip" id="miercoles_inip" class="form-control" value="00:00">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="miercoles_finp"></label>
+                                    <input type="time" name="miercoles_finp" id="miercoles_finp" class="form-control" value="00:00" onblur="validarHorario('miercoles')">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <label for="jueves_inip"></label>
+                                    <input type="time" name="jueves_inip" id="jueves_inip" class="form-control" value="00:00">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="jueves_finp"></label>
+                                    <input type="time" name="jueves_finp" id="jueves_finp" class="form-control" value="00:00" onblur="validarHorario('jueves')">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <label for="viernes_inip"></label>
+                                    <input type="time" name="viernes_inip" id="viernes_inip" class="form-control" value="00:00">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="viernes_finp"></label>
+                                    <input type="time" name="viernes_finp" id="viernes_finp" class="form-control" value="00:00" onblur="validarHorario('viernes')">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <label for="observacionesp"></label><textarea type="text" name="observacionesp" id="observacionesp" rows="1" class="form-control">Por definir </textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Limites -->
+        <hr>
+        <br>
+        <div class="row" content="center">
+            <div class="col-md-10">
+                 <input type="submit" value="Guardar curso" class="btn btn-primary" id="guardar">
+            <a class="btn btn-warning" href="{% url 'mostrar_cursos' %}">Cancelar</a>
+            </div>
+            <div class="col-md-2">
+                <button type="button" class="btn btn-outline-dark" id="limpiar-formulario">Limpiar formulario</button>
+            </div>
+        </div>
+    </form>
+
+</main>
+
+<!-- Scripts asociados al html -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.2/jquery-confirm.min.js"></script>
+<script src="{% static 'JS/agregarcurso.js' %}"></script>
+
+<!-- script para ver si viene de mostrar_cursos y resetea el formulario-->
+<script>
+    $(document).ready(function() {
+        // Agregar evento click al botón "Limpiar formulario"
+        $('#limpiar-formulario').click(function() {
+            // Obtener el formulario
+            var formulario = document.getElementById('formulario');
+            // Restablecer todos los campos a sus valores predeterminados
+            formulario.reset();
+            // Limpiar el LocalStorage
+            localStorage.clear();
+            // Recargar la página
+            location.reload();
+        });
+    });
+</script>
+
+
+<!-- script para buscar curso selecionado y profesor-->
+<script>
+    $(document).ready(function() {
+        $('#cve_curso').change(function() {
+            var selectedValue = $(this).val();
+            $.ajax({
+                url: '/buscar_elemento/',
+                type: 'GET',
+                data: {
+                    'elemento': selectedValue,
+                    'tipo_elemento': 'curso'
+                },
+                dataType: 'json',
+                success: function(data) {
+                    $('#creditos').val(data['creditos']);
+                    $('#cve_curso').val(data['cve_curso']);
+                },
+                error: function() {
+                    alert('Hubo un error al buscar el curso seleccionado');
+                }
+            });
+        });
+    });
+
+    $('#cve_academic').change(function() {
+        var selectedValue = $(this).val();
+        $.ajax({
+            url: '/buscar_elemento/',
+            type: 'GET',
+            data: {
+                'elemento': selectedValue,
+                'tipo_elemento': 'profesor'
+            },
+            dataType: 'json',
+            success: function(data) {
+                $('#nom_academic').val(data['nom_academic']);
+                $('#apellidos').val(data['apellidos']);
+                $('#correo').val(data['correo']);
+            },
+            error: function() {
+                alert('Hubo un error al buscar el profesor seleccionado');
+            }
+        });
+    });
+</script>
+
+<!-- Scripts que verifica si un curso con mismo cve academic y curso -->
+<script>
+    function verificarCursoProfesor() {
+        // Obtenemos los valores de cve_curso y cve_academic
+        var cve_curso = document.getElementById('cve_curso').value;
+        var cve_academic = document.getElementById('cve_academic').value;
+
+        // Hacemos una petición AJAX al servidor para verificar si la combinación ya existe
+        $.ajax({
+            url: '/verificar_curso_existente/',
+            type: 'GET',
+            data: { cve_curso: cve_curso, cve_academic: cve_academic },
+            dataType: 'json',
+            success: function(response) {
+                if (response.existe) {
+                    // Verificamos si el elemento existe antes de intentar acceder a su propiedad 'style'
+                    var errorElement = document.getElementById('error-cve-curso-profesor');
+                    if (errorElement) {
+                        // Si la combinación ya existe, mostramos un mensaje de error
+                        errorElement.style.display = 'block';
+                        errorElement.innerText = "El curso y el profesor que ha seleccionado ya ha sido registrado anteriormente.";
+                    }
+                } else {
+                    // Verificamos si el elemento existe antes de intentar acceder a su propiedad 'style'
+                    var errorElement = document.getElementById('error-cve-curso-profesor');
+                    if (errorElement) {
+                        // Si la combinación no existe, ocultamos el mensaje de error
+                        errorElement.style.display = 'none';
+                    }
+                }
+            },
+            error: function() {
+                // Si hay un error en la petición AJAX
+                alert("Ha ocurrido un error.");
+            }
+        });
+    }
+</script>
+
+
+<!-- Scripts que actualiza el valor cve_curso para agregar colabs -->
+<script defer>
+    window.addEventListener('load', () => {
+        const select = document.getElementById('cve_curso');
+        const btnAgregarColab = document.getElementById('btnAgregarColaboradores');
+        select.addEventListener('change', () => {
+            const selectedValue = select.value;
+            btnAgregarColab.href = "/agregar_colab/" + selectedValue + "/";
+        });
+    });
+</script>
+
+<!-- Scripts que guarda la ultima selección del usuario -->
+<script>
+    $(document).ready(function() {
+        // Agregar evento click al botón "Limpiar formulario"
+        $('#limpiar-formulario').click(function() {
+            // Obtener el formulario
+            var formulario = document.getElementById('formulario');
+            // Restablecer todos los campos a sus valores predeterminados
+            formulario.reset();
+            // Limpiar los valores de localStorage
+            localStorage.removeItem('cve_curso');
+            localStorage.removeItem('creditos');
+            localStorage.removeItem('cve_academic');
+        });
+
+        // Agregar evento change a los campos del formulario
+        $('#cve_curso, #creditos, #cve_academic').change(function() {
+            // Actualizar los valores de localStorage
+            localStorage.setItem('cve_curso', $('#cve_curso').val());
+            localStorage.setItem('creditos', $('#creditos').val());
+            localStorage.setItem('cve_academic', $('#cve_academic').val());
+        });
+
+        // Cargar los valores de localStorage al cargar la página
+        const cveCurso = localStorage.getItem('cve_curso');
+        const creditos = localStorage.getItem('creditos');
+        const cveAcademic = localStorage.getItem('cve_academic');
+        if (cveCurso) {
+            $('#cve_curso').val(cveCurso);
+        }
+        if (creditos) {
+            $('#creditos').val(creditos);
+        }
+        if (cveAcademic) {
+            $('#cve_academic').val(cveAcademic);
+        }
+    });
+</script>
+
+
 <script>
     function actualizarTabla(data) {
-        var tabla = $('#tabla-colabs-body');
-        tabla.empty();
+        const tablaBody = $('#tabla-colabs-body');
+        const container = $('.tabla-colabs-container');
+        const tablaMsg = '<tr><td colspan="2">¡Sin colaboradores!</td></tr>';
+
         if (data.length > 0) {
-            $.each(data, function(index, row) {
-                var fila = '<tr>' +
-                    '<td>' + row.clave + '</td>' +
-                    '<td>' + row.nombre + ' ' + row.apellido + '</td>' +
-                    '</tr>';
-                tabla.append(fila);
+            const filas = data.map(row => {
+                return `<tr>\n<td>${row.clave}</td>\n<td>${row.nombre} ${row.apellido}</td>\n</tr>`;
             });
-            $('.tabla-colabs-container').addClass('mostrar');
+
+            tablaBody.html(filas.join(''));
+            container.addClass('mostrar');
+            container.show();
         } else {
-            tabla.html('<tr><td colspan="2">¡Sin colaboradores!</td></tr>');
-            $('.tabla-colabs-container').removeClass('mostrar');
+            tablaBody.html(tablaMsg);
+            container.removeClass('mostrar');
+            container.hide();
         }
     }
 
     function cargarTabla() {
         var cve_curso = $('#cve_curso').val();
+        if (!cve_curso) {
+            $('.tabla-colabs-container').removeClass('mostrar');
+            return;
+        }
+
         var url = '/hay_colabs/' + cve_curso + '/';
         console.log('La URL del endpoint es: ' + url);
         $.ajax({
@@ -47,120 +847,77 @@
     });
 </script>
 
+<!-- Scripts que valida los horarios -->
+<script>
+    function validarHorario(dia) {
+        var inicio = document.getElementById(dia + "_ini").value;
+        var fin = document.getElementById(dia + "_fin").value;
+        if (inicio > fin) {
+            alert("El horario de inicio debe ser menor que el horario de fin.");
+            document.getElementById(dia + "_ini").value = "00:00";
+            document.getElementById(dia + "_fin").value = "00:00";
+        }
 
-<body>
-<main>
-    <!-- La imagen institucional -->
-    <div class="center-image">
-        <img src="{% static 'imagenes/SubDirImg.png' %}" alt="" width="600">
-    </div>
-    <hr>
-    <h1> {{ usuario.cve_posgrad }} - {{ usuario.nom_program }}</h1>
-    <legend id="error-cve-curso-profesor" style="display: none; color: red;">La combinación de clave de curso y clave académica ya existe en la base de datos.</legend>
-    <br>
-    <!-- <form method="POST" action="/agregar_curso/" class="row g-2" id="formulario"> -->
-    <form action="{% url 'agregar_curso' %}?from=agregar_curso" method="POST" class="row g-2"  id="formulario">
+        var iniciop = document.getElementById(dia + "_inip").value;
+        var finp = document.getElementById(dia + "_finp").value;
+        if (iniciop > finp) {
+            alert("El horario de inicio debe ser menor que el horario de fin.");
+            document.getElementById(dia + "_inip").value = "00:00";
+            document.getElementById(dia + "_finp").value = "00:00";
+        }
+    }
+    // Obtener todos los elementos de entrada de tiempo
+    var inputsTiempo = document.querySelectorAll('input[type="time"]');
 
-        {% csrf_token %}
-        {{ formulario.as_p }}
-        {% if messages %}
-            <div class="alert alert-success" role="alert">
-                Curso registrado exitosamente!
-            </div>
-        {% endif %}
-        <div class="row">
-            <div class="col-md-6">
-                <fieldset>
-                    <legend style="text-align: center;">Curso</legend>
-                    <hr>
-                    <div class="col-md-12">
-                        <div class="form-group">
-                            <div style="display:flex; align-items:center; justify-content: center;">
-                                <label for="cve_curso" style="width:150px;">Clave:</label>
-                                <select name="cve_curso" id="cve_curso" class="form-select" style="width:calc(100% - 150px);" onchange="guardarDatos(); document.getElementById('cve_curso').value = this.value;">
-                                    <option value="" selected disabled>-- Selecciona una opción --</option>
-                                    {% for curso in loscursos %}
-                                        <option value="{{ curso.cve_curso }}" {% if curso.cve_curso == formulario.cve_curso.value %}selected{% endif %}>
-                                            {{ curso.cve_curso }} : {{ curso.nombre }}
-                                        </option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                            <br>
-                            <div style="display:flex; align-items:center;">
-                                <label for="creditos" style="display:inline-block;width:150px;">Créditos:</label>
-                                <input type="text" name="creditos" id="creditos" class="form-control_1" style="width:calc(100% - 150px);" readonly>
-                            </div>
-                            <br>
-                            <br>
-                            <br>
-                        </div>
-                    </div>
-                </fieldset>
-            </div>
-            <div class="col-md-6">
-                <fieldset>
-                    <legend style="text-align: center;">Profesor titular</legend>
-                    <hr>
-                    <div class="col-md-12">
-                        <div class="form-group">
-                            <div style="display:flex; align-items:center;">
-                                <label style="width:calc(100% - 50px);">Clave</label>
-                                <label for="cve_academic"></label><select name="cve_academic" id="cve_academic" class="form-select" style="width:500px" onchange="verificarCursoProfesor()">
-                                <option value="" selected disabled>-- Selecciona una opción --</option>
-                                {% for academico in academicos %}
-                                    <option value="{{ academico.cve_academic }}"> {{ academico.cve_academic }}: {{ academico.nombres }} {{ academico.apellidos }}</option>
-                                {% endfor %}
-                            </select>
-                            </div>
-                        </div>
-                    </div>
+    // Añadir el evento 'blur' a cada elemento de entrada de tiempo
+    inputsTiempo.forEach(function(input) {
+        input.addEventListener('blur', function() {
+            var dia = input.getAttribute('data-dia');
+            validarHorario(dia);
+        });
+    });
+</script>
 
-                    <!-- Boton para agregar colaboradores -->
-                    <div class="container" content="center">
-                        <div class="row">
-                            {% if formulario.cve_curso.value %}
-                                <div>
-                                    <a class="btn btn-outline-secondary" href="{% url 'agregar_colab' cve_curso='' %}" id="btnAgregarColaboradores" onclick="abrirVentanaEmergente(event, this.href)">Agregar Colaboradores</a>
-                                </div>
-                            {% else %}
-                                <div>
-                                    <a class="btn btn-secondary" id="btnAgregarColaboradores" disabled>+ Colaboradores</a>
-                                </div>
-                            {% endif %}
-                        </div>
-                    </div>
-                </fieldset>
-            </div>
-            <!-- Tabla desplegable si existen colabs-->
-            <div class="tabla-colabs-container">
-                <legend>Colaboradores</legend>
-                <table class="table" id="tabla-colabs">
-                    <thead>
-                    <tr>
-                        <th>Clave</th>
-                        <th>Nombre</th>
-                    </tr>
-                    </thead>
-                    <tbody id="tabla-colabs-body">
+<script>
+    const guardarBtn = document.querySelector('#guardar');
 
-                    </tbody>
-                </table>
-            </div>
-        </div>
-        <!-- Fin-->
-    <div class="col-md-12">
-        <legend>Ingrese horarios donde corresponda</legend>
-        <!-- Limites -->
-        <div class="container" content="center">
+    guardarBtn.addEventListener('click', (event) => {
+        event.preventDefault();
 
-    </div>
-        <!-- Limites -->
-        <hr>
-        <br>
-        <div content="center">
-            <input type="submit" value="Guardar curso" class="btn btn-primary" id="guardar">
-            <a class="btn btn-warning" href="{% url 'mostrar_cursos' %}">Cancelar</a>
-        </div>
-    </form>
-</main>
+        const formulario = document.querySelector('#formulario');
+        const formData = new FormData(formulario);
+
+        fetch('/crear_capcurs/', {
+            method: 'POST',
+            body: formData
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`Curso guardado con éxito. Código de estado: ${response.status}`);
+                }
+
+                const contentType = response.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    throw new TypeError('La respuesta del servidor no es un objeto JSON válido.');
+                }
+
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    window.location.href = '/mostrar_cursos/';
+                } else {
+                    alert('Error al guardar el formulario JAJAJAJA.');
+                    console.log('Error al guardar el formulario:', data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Hubo un error al procesar la solicitud.');
+            })
+    });
+</script>
+
+
+</body>
+</html>

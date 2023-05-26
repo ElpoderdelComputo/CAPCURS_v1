@@ -166,12 +166,13 @@
                 var row = '<tr><td>' + cveAcademic + '</td><td>' + nombresApellidos + '</td><td><button type="button" class="btn btn-delete eliminar"><i class="fas fa-trash"></i></button></td></tr>';
                 $('#tabla-profesores-body').append(row);
                 profesoresSeleccionados.push(cveAcademic);
-                // Limpiar y restablecer el campo del select
-                $('#cve_academic').val('');
+                // $('#cve_academic').val("");
             }
             else if (cveAcademic) {
                 alert('El profesor ya ha sido seleccionado');
             }
+            // Limpiar y restablecer el campo del select
+
         });
 
         // Remove selected profesor from array when "Eliminar" button is clicked

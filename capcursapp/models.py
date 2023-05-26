@@ -6,6 +6,8 @@
 #   * Remove `managed = False` lines if you wish to allow Django to create, modify, and delete the table
 # Feel free to rename the models, but don't rename db_table values or field names.
 from django.db import models
+AUTH_USER_MODEL = 'capcursapp.Coordinaciones'
+from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 
 
 class Academic(models.Model):
@@ -157,10 +159,7 @@ class Catacurs(models.Model):
         managed = False
         db_table = 'catacurs'
 
-
-
-
-class Coordinaciones(models.Model):
+'''class Coordinaciones(models.Model):
     cve_campus = models.CharField(max_length=3)
     cve_posgrad = models.CharField(max_length=6)
     nom_posgra = models.CharField(max_length=60)
@@ -174,6 +173,85 @@ class Coordinaciones(models.Model):
     class Meta:
         managed = False
         db_table = 'coordinaciones'
+        app_label = 'capcursapp'
+'''
+
+class CoordinacionesManager(BaseUserManager):
+    def create_user(self, cve_campus, cve_posgrad, nom_posgra, cve_program, nom_program, username, password):
+        # Crea un nuevo usuario
+        user = self.model(
+            cve_campus=cve_campus,
+            cve_posgrad=cve_posgrad,
+            nom_posgra=nom_posgra,
+            cve_program=cve_program,
+            nom_program=nom_program,
+            username=username,
+            password=password,
+        )
+        user.set_password(password)
+        user.save(using=self._db)
+        return user
+
+    def create_superuser(self, cve_campus, cve_posgrad, nom_posgra, cve_program, nom_program, username, password):
+        # Crea un nuevo superusuario
+        user = self.create_user(
+            cve_campus=cve_campus,
+            cve_posgrad=cve_posgrad,
+            nom_posgra=nom_posgra,
+            cve_program=cve_program,
+            nom_program=nom_program,
+            username=username,
+            password=password,
+        )
+        user.is_superuser = True
+        user.save(using=self._db)
+        return user
+
+
+class Coordinaciones(AbstractBaseUser):
+    cve_campus = models.CharField(max_length=3)
+    cve_posgrad = models.CharField(max_length=6)
+    nom_posgra = models.CharField(max_length=60)
+    cve_program = models.CharField(max_length=3)
+    nom_program = models.CharField(max_length=50)
+    username = models.CharField(max_length=50, unique=True)
+    password = models.CharField(max_length=128)
+    cont_veces = models.IntegerField(default=0)
+    cont_final = models.IntegerField(default=0)
+
+    USERNAME_FIELD = 'username'
+    REQUIRED_FIELDS = ['cve_campus', 'cve_posgrad', 'nom_posgra', 'cve_program', 'nom_program']
+
+    objects = CoordinacionesManager()
+
+    def incrementar_cont_veces(self):
+        self.cont_veces += 1
+        self.save()
+
+    def incrementar_cont_final(self):
+        self.cont_final += 1
+        print('Ahora vale', self.cont_final)
+        self.save()
+
+    def check_password(self, password):
+        return self.password == password
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.is_superuser = None
+
+    def __str__(self):
+        return self.username
+
+    def has_perm(self, perm, obj=None):
+        return self.is_superuser
+
+    def has_module_perms(self, app_label):
+        return self.is_superuser
+
+    @property
+    def is_staff(self):
+        return self.is_superuser
 
 
 class DjangoAdminLog(models.Model):

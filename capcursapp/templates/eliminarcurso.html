@@ -6,38 +6,91 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
     <!-- Agrega estilo tabla de datos Boostrap -->
-
+    <link rel="stylesheet" href="{% static 'CSS/eliminarcurso.css' %}">
     <title></title>
 </head>
 
 <body>
- <div class="popup-content">
-        <h1>Confirmar eliminación del curso: </h1>
-        <h1>"{{ curso.cve_curso_id}} : {{ curso.nombre }}"</h1>
-        <form method="POST">
-            {% csrf_token %}
-            <button id="eliminar-curso-btn">Eliminar</button>
-            <a href="{% url 'mostrar_cursos' %}">Cancelar</a>
-        </form>
-  </div>
+<div id="myModal" class="modal">
+    <div class="modal-content">
+        <div class="popup-content">
+            <form id="eliminar-curso-form" method="POST">
+                <h1>Confirma eliminación del curso:</h1>
+                <h2>"{{ curso.cve_curso_id }} : {{ curso.nombre }}"</h2>
+                <h2>Titular: "{{ curso.cve_academic_id }} : {{ curso.nom_academic }} {{ curso.apellidos }}"</h2>
+                {% csrf_token %}
+                <div class="row">
+                    <button type="submit" class="btn btn-primary" id="eliminar-curso-btn">Eliminar</button>
+                    <a class="btn btn-warning" href="#" onclick="cerrarVentanaEmergente(event)">Cancelar</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 
 <script>
-    const eliminarCursoBtn = document.getElementById('eliminar-curso-btn');
-    const popupContent = document.querySelector('.popup-content');
-    const closeBtns = document.querySelectorAll('.close');
+    function cerrarVentanaEmergente(event) {
+        event.preventDefault();
+        if (window.opener) {
+            window.opener.location.href = "{% url 'mostrar_cursos' %}";
+        }
+        window.close();
+    }
+</script>
 
-    eliminarCursoBtn.addEventListener('click', () => {
-        console.log('Se hizo clic en el botón "eliminar-curso-btn"');
-        popupContent.classList.add('show-popup');
-    });
+<script>
+    window.addEventListener('DOMContentLoaded', () => {
+        const eliminarCursoForm = document.getElementById('eliminar-curso-form');
 
-    closeBtns.forEach((btn) => {
-        btn.addEventListener('click', () => {
-            console.log('Se hizo clic en el botón "close"');
-            popupContent.classList.remove('show-popup');
+        eliminarCursoForm.addEventListener('submit', (event) => {
+            event.preventDefault(); // Evitar que se envíe el formulario de forma predeterminada
+
+            console.log('Se hizo clic en el botón "eliminar-curso-btn"');
+
+            const formData = new FormData(eliminarCursoForm);
+
+            fetch("{% url 'eliminar_curso' curso.id %}", {
+                method: 'POST',
+                body: formData
+            })
+                .then(response => response.json())
+                .then(data => {
+                    // Mostrar la respuesta en la ventana emergente
+                    const newWindow = window.open('', '_blank', 'width=800,height=300');
+                    newWindow.document.write('<html><head><title>Ventana emergente</title>');
+                    newWindow.document.write('<style>body { display: flex; align-items: center; justify-content: center; background-color: #f5f5f5; }</style>');
+                    newWindow.document.write('</head><body>');
+                    newWindow.document.write('<div style="width: 600px; height: 300px; background-color: #fff; border-radius: 10px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);">');
+                    newWindow.document.write('<h1 style="text-align: center; margin: 10px 0;">Respuesta del servidor:</h1>');
+                    newWindow.document.write('<p style="text-align: center;">' + data.message + '</p>');
+                    newWindow.document.write('</div>');
+                    newWindow.document.write('</body></html>');
+                    newWindow.document.close();
+                    setTimeout(() => {
+                        newWindow.postMessage('close', '*'); // Enviar mensaje para cerrar la ventana emergente
+                    }, 10);
+
+                })
+                .catch(error => {
+                    console.log('Error al eliminar el curso:', error);
+                })
+                .finally(() => {
+                    if (window.opener) {
+                        window.opener.location.href = "{% url 'mostrar_cursos' %}";
+                    }
+                    window.close();
+                });
         });
     });
-</script>
-</body>
 
+    window.addEventListener('message', (event) => {
+        if (event.data === 'close') {
+            window.close(); // Cerrar la ventana emergente en respuesta al mensaje recibido
+        }
+    });
+
+</script>
+
+
+</body>
 </html>

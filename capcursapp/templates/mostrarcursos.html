@@ -64,7 +64,14 @@
                 <td>{{ curso.creditos }}</td>
                 <td>{{ curso.observaciones }}</td>
                 <td><a class="btn btn-light" href="{% url 'editar_curso' curso.id %}"><i class="fas fa-pencil-alt"></i></a></td>
+                <td>
+                    <button class="btn btn-danger" id="eliminar-curso-btn" onclick="abrirVentanaEmergente('{{ curso.id }}')" style="background-color: #ffffff; color:#ff0000; border-color: transparent;">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                </td>
+                <!--
                 <td><a class="btn btn-danger" id="eliminar-curso-btn" href="{% url 'eliminar_curso' curso.id %}" style="background-color: #ffffff; color:#ff0000; border-color: transparent;"><i class="fas fa-trash-alt"></i></a></td>
+            -->
             </tr>
         {% endfor %}
         </tbody>
@@ -94,27 +101,26 @@
 </script>
 
 <script>
-    function limpiarFormulario() {
-        document.getElementById('cve_curso').value = '';
-        document.getElementById('creditos').value = '';
-        document.getElementById('cve_academic').value = '';
+    function abrirVentanaEmergente(cursoId) {
+        const url = "{% url 'eliminar_curso' 0 %}".replace('0', cursoId);
+        const newWindow = window.open(url, "_blank", "width=400,height=300");
+        newWindow.focus();
     }
-    limpiarFormulario();
 </script>
+
 
 <script>
     const eliminarCursoBtn = document.getElementById('eliminar-curso-btn');
     const popupContent = document.querySelector('.popup-content');
     const closeBtns = document.querySelectorAll('.close');
 
-    console.log('eliminarCursoBtn:', eliminarCursoBtn);
-    console.log('popupContent:', popupContent);
-    console.log('closeBtns:', closeBtns);
-
-    eliminarCursoBtn.addEventListener('click', () => {
+    if (eliminarCursoBtn) {
+      // Realizar operaciones con el botón
+      eliminarCursoBtn.addEventListener('click', () => {
         console.log('Se hizo clic en el botón "eliminar-curso-btn"');
         popupContent.classList.add('show-popup');
-    });
+      });
+    }
 
     closeBtns.forEach((btn) => {
         btn.addEventListener('click', () => {

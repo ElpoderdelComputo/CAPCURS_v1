@@ -31,8 +31,8 @@
             <th scope="col">ID</th>
             <th scope="col">Clave de Curso</th>
             <th scope="col">Nombre del curso</th>
-            <th scope="col">Clave del Profesor</th>
             <th scope="col">Profesor Titular</th>
+            <th scope="col">Colaboradores</th>
             <th scope="col">Créditos</th>
             <th scope="col">Lunes</th>
             <th scope="col">Martes</th>
@@ -49,8 +49,14 @@
                 <th scope="row">{{ forloop.counter }}</th>
                 <td>{{ curso.cve_curso_id }}</td>
                 <td>{{ curso.nombre }}</td>
-                <td>{{ curso.cve_academic_id }}</td>
-                <td>{{ curso.nom_academic }} {{ curso.apellidos }}</td>
+                <td>{{ curso.cve_academic_id }} : {{ curso.nom_academic }} {{ curso.apellidos }} </td>
+                <td>
+                    {% for col in colaboradores %}
+                        {% if col.cve_curso == curso.cve_curso_id %}
+                            {{ col.cve_academic }}
+                        {% endif %}
+                    {% endfor %}
+                </td>
                 <td>{{ curso.creditos }}</td>
 
                 <td class="lunes">
@@ -139,14 +145,14 @@
                 </td>
                 <td class="observaciones">
                     <div class="horario">
-                        {% if curso.observaciones == ''%}
+                        {% if curso.observaciones == 'Por definir'%}
 
                         {% else %}
                             {{ curso.observaciones }}
                         {% endif %}
                     </div>
                     <div class="horario">
-                        {% if curso.observacionesp == "" or not curso.observacionesp %}
+                        {% if curso.observacionesp == "Por definir" or not curso.observacionesp %}
 
                         {% else %}
                             {{ curso.observacionesp }}

@@ -16,18 +16,16 @@ Including another URLconf
 from django.urls import path, include
 from django.contrib import admin
 from capcursapp.views import verificar_credenciales, mostrar_cursos, crear_capcurs, actualizar_curso, eliminar_curso,\
-    agregar_curso, editar_curso, inicioSesionView, agregar_colab_edit, buscar_elemento, guardar_colaboradores, agregar_colab,\
-    vista_previa, hay_colabs, verificar_curso_existente, guardar_enviar, elimina_colaborador, generarPDF
-from capcursapp import views
+    agregar_curso, editar_curso, agregar_colab_edit, buscar_elemento, guardar_colaboradores, agregar_colab,\
+    vista_previa, hay_colabs, verificar_curso_existente, guardar_enviar, elimina_colaborador, generarPDF, iniciar_sesion, cursos_guardados, logout_view
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', inicioSesionView, name='iniciar_sesion'),
+    path('', iniciar_sesion, name='iniciar_sesion'),
     path('verificar_credenciales/', verificar_credenciales, name='verificar_credenciales'),
     path('mostrar_cursos/', mostrar_cursos, name='mostrar_cursos'),
     path('agregar_curso/', agregar_curso, name='agregar_curso'),
     path('buscar_elemento/', buscar_elemento, name='buscar_elemento'),
-    #path('generar_capcurs/', generar_capcurs, name='generar_capcurs'),
     path('crear_capcurs/', crear_capcurs, name='crear_capcurs'),
     path('editar_curso/<int:id_curso>/', editar_curso, name='editar_curso'),
     path('actualizar_curso/<int:id_curso>/', actualizar_curso, name='actualizar_curso'),
@@ -39,10 +37,10 @@ urlpatterns = [
     path('hay_colabs/<str:cve_curso>/', hay_colabs, name='hay_colabs'),
     path('verificar_curso_existente/', verificar_curso_existente, name='verificar_curso_existente'),
     path('guardar_enviar/<str:nom_program>/', guardar_enviar, name='guardar_enviar'),
-
-    path('lista/', views.Report_view.as_view(), name='lista'),
-    path('lista_capcurs/', views.Report_viewPdf.as_view(), name='lista_capcurs'),
     path('elimina_colaborador/', elimina_colaborador, name='elimina_colaborador'),
     path('generarPDF/', generarPDF, name='generarPDF'),
     path('accounts/', include('django.contrib.auth.urls')),
+    path('cursos_guardados/', cursos_guardados, name='cursos_guardados'),
+path('logout/', logout_view, name='logout'),
+
 ]

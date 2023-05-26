@@ -1,5 +1,5 @@
 from django import forms
-from capcursapp.models import Capcurs, Imparegu
+from capcursapp.models import Capcurs, Imparegu, Coordinaciones
 
 class CapcursForm(forms.ModelForm):
     class Meta:
@@ -27,3 +27,10 @@ class CapcursFormEditar(forms.ModelForm):
                   'jueves_ini', 'jueves_fin', 'viernes_fin', 'viernes_ini', 'aulap', 'observacionesp','lunes_inip',
                   'lunes_finp', 'martes_inip', 'martes_finp', 'miercoles_finp', 'miercoles_inip',
                   'jueves_inip', 'jueves_finp', 'viernes_finp', 'viernes_inip']
+
+
+
+class CoordinacionesForm(forms.ModelForm):
+    class Meta:
+        model = Coordinaciones
+        fields = ['cont_veces', 'cont_final']

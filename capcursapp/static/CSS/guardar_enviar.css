@@ -1,3 +1,16 @@
+@page {
+    size: letter landscape;
+}
+
+img {
+  display: flex;
+  margin: auto;
+  margin-top: 0;
+  margin-bottom: 5px;
+  justify-content: center;
+}
+
+
 /* Estilos generales */
 body {
     font-family: Arial, sans-serif;
@@ -106,25 +119,6 @@ tr:hover {
 
     th, td {
         padding: 6px;
-    }
-}
-
-/* Estilos específicos para imprimir */
-@media print {
-    body {
-        background-color: #fff;
-    }
-
-    .toprint {
-        padding: 1rem;
-        margin: 0;
-        border: none;
-        box-shadow: none;
-        justify-items: center;
-    }
-
-    .btn {
-        display: none;
     }
 }
 

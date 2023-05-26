@@ -10,169 +10,165 @@
     <link rel="stylesheet" href="{% static 'CSS/guardar_enviar.css' %}">
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.2/html2pdf.bundle.min.js"></script>
-
     <title>{{ titulo }}</title>
 </head>
 
 <body>
-<div class="container" id="print">
-    <!-- La imagen institucional -->
+<form method="post" action="/generarPDF/">
+    {% csrf_token %}
+    <input type="hidden" name="nom_program" value="{{ usuario.nom_program }}">
+    <div class="container" id="print">
 
-    <div class="center-image">
-        <img src="{% static 'imagenes/SubDirImg.png' %}" alt="" width="500">
+        <!-- La imagen institucional -->
+        <div class="center-image">
+            <img src="{% static 'imagenes/SubDirImg.png' %}" alt="" width="500"/>
+        </div>
 
-    </div>
-    <br>
-    <h1>{{ usuario.cve_posgrad }} - {{ usuario.nom_program }}</h1>
-    <h2>Cursos programados Verano 2023</h2>
-    <p></p>
+        <h1>{{ usuario.cve_posgrad }} - {{ usuario.nom_program }}</h1>
+        <h2>Cursos programados Verano 2023</h2>
+        <p></p>
 
-    <table id="tabla-cursos" class="display" style="width:100%">
-        <thead>
-        <tr>
-            <th scope="col">ID</th>
-            <th scope="col">Clave de Curso</th>
-            <th scope="col">Nombre del curso</th>
-            <th scope="col">Clave del Profesor</th>
-            <th scope="col">Profesor Titular</th>
-            <th scope="col">Créditos</th>
-            <th scope="col">Lunes</th>
-            <th scope="col">Martes</th>
-            <th scope="col">Miercoles</th>
-            <th scope="col">Jueves</th>
-            <th scope="col">Viernes</th>
-            <th scope="col">Aula-Obs</th>
-        </tr>
-        </thead>
-        <tbody>
-        {% for curso in cursos_posgra %}
+        <table id="tabla-cursos" class="display" style="width:100%">
+            <thead>
             <tr>
-                <!--La función forloop.counter devuelve el número de veces que se ha iterado el ciclo for -->
-                <th scope="row">{{ forloop.counter }}</th>
-                <td>{{ curso.cve_curso_id }}</td>
-                <td>{{ curso.nombre }}</td>
-                <td>{{ curso.cve_academic_id }}</td>
-                <td>{{ curso.nom_academic }} {{ curso.apellidos }}</td>
-                <td>{{ curso.creditos }}</td>
-
-                <td class="lunes">
-                    <div class="horario">
-                        {% if curso.lunes_ini|time:"H:i" == "00:00" %}
-
-                        {% else %}
-                            {{ curso.lunes_ini|time:"H:i" }}-{{ curso.lunes_fin|time:"H:i" }}
-                        {% endif %}
-                    </div>
-                    <div class="horario">
-                        {% if curso.lunes_inip|time:"H:i" == "00:00" or not curso.lunes_inip %}
-
-                        {% else %}
-                            {{ curso.lunes_inip|time:"H:i" }}-{{ curso.lunes_finp|time:"H:i" }}
-                        {% endif %}
-                    </div>
-                </td>
-
-                <td class="martes">
-                    <div class="horario">
-                        {% if curso.martes_ini|time:"H:i" == "00:00" %}
-
-                        {% else %}
-                            {{ curso.martes_ini|time:"H:i" }}-{{ curso.martes_fin|time:"H:i" }}
-                        {% endif %}
-                    </div>
-                    <div class="horario">
-                        {% if curso.martes_inip|time:"H:i" == "00:00" or not curso.martes_inip %}
-
-                        {% else %}
-                            {{ curso.martes_inip|time:"H:i" }}-{{ curso.martes_finp|time:"H:i" }}
-                        {% endif %}
-                    </div>
-                </td>
-
-                <td class="miercoles">
-                    <div class="horario">
-                        {% if curso.miercoles_ini|time:"H:i" == "00:00" %}
-
-                        {% else %}
-                            {{ curso.miercoles_ini|time:"H:i" }}-{{ curso.miercoles_fin|time:"H:i" }}
-                        {% endif %}
-                    </div>
-                    <div class="horario">
-                        {% if curso.miercoles_inip|time:"H:i" == "00:00" or not curso.miercoles_inip %}
-
-                        {% else %}
-                            {{ curso.miercoles_inip|time:"H:i" }}-{{ curso.miercoles_finp|time:"H:i" }}
-                        {% endif %}
-                    </div>
-                </td>
-
-                <td class="jueves">
-                    <div class="horario">
-                        {% if curso.jueves_ini|time:"H:i" == "00:00" %}
-
-                        {% else %}
-                            {{ curso.jueves_ini|time:"H:i" }}-{{ curso.jueves_fin|time:"H:i" }}
-                        {% endif %}
-                    </div>
-                    <div class="horario">
-                        {% if curso.jueves_inip|time:"H:i" == "00:00" or not curso.jueves_inip %}
-
-                        {% else %}
-                            {{ curso.jueves_inip|time:"H:i" }}-{{ curso.jueves_finp|time:"H:i" }}
-                        {% endif %}
-                    </div>
-                </td>
-
-                <td class="viernes">
-                    <div class="horario">
-                        {% if curso.viernes_ini|time:"H:i" == "00:00" %}
-
-                        {% else %}
-                            {{ curso.viernes_ini|time:"H:i" }}-{{ curso.viernes_fin|time:"H:i" }}
-                        {% endif %}
-                    </div>
-                    <div class="horario">
-                        {% if curso.viernes_inip|time:"H:i" == "00:00" or not curso.viernes_inip %}
-
-                        {% else %}
-                            {{ curso.viernes_inip|time:"H:i" }}-{{ curso.viernes_finp|time:"H:i" }}
-                        {% endif %}
-                    </div>
-                </td>
-                <td class="observaciones">
-                    <div class="horario">
-                        {% if curso.observaciones == ''%}
-
-                        {% else %}
-                            {{ curso.observaciones }}
-                        {% endif %}
-                    </div>
-                    <div class="horario">
-                        {% if curso.observacionesp == "" or not curso.observacionesp %}
-
-                        {% else %}
-                            {{ curso.observacionesp }}
-                        {% endif %}
-                    </div>
-                </td>
+                <th scope="col">ID</th>
+                <th scope="col">Clave de Curso</th>
+                <th scope="col">Nombre del curso</th>
+                <th scope="col">Clave del Profesor</th>
+                <th scope="col">Profesor Titular</th>
+                <th scope="col">Créditos</th>
+                <th scope="col">Lunes</th>
+                <th scope="col">Martes</th>
+                <th scope="col">Miercoles</th>
+                <th scope="col">Jueves</th>
+                <th scope="col">Viernes</th>
+                <th scope="col">Aula-Obs</th>
             </tr>
-        {% endfor %}
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+            {% for curso in cursos_posgra %}
+                <tr>
+                    <!--La función forloop.counter devuelve el número de veces que se ha iterado el ciclo for -->
+                    <th scope="row">{{ forloop.counter }}</th>
+                    <td>{{ curso.cve_curso_id }}</td>
+                    <td>{{ curso.nombre }}</td>
+                    <td>{{ curso.cve_academic_id }}</td>
+                    <td>{{ curso.nom_academic }} {{ curso.apellidos }}</td>
+                    <td>{{ curso.creditos }}</td>
 
-    <a class="btn btn-success" href="{% url 'mostrar_cursos' %}">Regresar</a>
-    <!--  <a class="btn btn-success" href="{% url 'lista_capcurs' %}">Enviar</a>
+                    <td class="lunes">
+                        <div class="horario">
+                            {% if curso.lunes_ini|time:"H:i" == "00:00" %}
 
- <button onclick="descargarPDF()">Descargar PDF</button> -->
+                            {% else %}
+                                {{ curso.lunes_ini|time:"H:i" }}-{{ curso.lunes_fin|time:"H:i" }}
+                            {% endif %}
+                        </div>
+                        <div class="horario">
+                            {% if curso.lunes_inip|time:"H:i" == "00:00" or not curso.lunes_inip %}
 
-    <button onclick="generarYPdfEnviarPorEmail()">Generar y enviar PDF</button>
+                            {% else %}
+                                P: {{ curso.lunes_inip|time:"H:i" }}-{{ curso.lunes_finp|time:"H:i" }}
+                            {% endif %}
+                        </div>
+                    </td>
 
+                    <td class="martes">
+                        <div class="horario">
+                            {% if curso.martes_ini|time:"H:i" == "00:00" %}
 
-</div>
+                            {% else %}
+                                {{ curso.martes_ini|time:"H:i" }}-{{ curso.martes_fin|time:"H:i" }}
+                            {% endif %}
+                        </div>
+                        <div class="horario">
+                            {% if curso.martes_inip|time:"H:i" == "00:00" or not curso.martes_inip %}
 
+                            {% else %}
+                                P: {{ curso.martes_inip|time:"H:i" }}-{{ curso.martes_finp|time:"H:i" }}
+                            {% endif %}
+                        </div>
+                    </td>
+
+                    <td class="miercoles">
+                        <div class="horario">
+                            {% if curso.miercoles_ini|time:"H:i" == "00:00" %}
+
+                            {% else %}
+                                {{ curso.miercoles_ini|time:"H:i" }}-{{ curso.miercoles_fin|time:"H:i" }}
+                            {% endif %}
+                        </div>
+                        <div class="horario">
+                            {% if curso.miercoles_inip|time:"H:i" == "00:00" or not curso.miercoles_inip %}
+
+                            {% else %}
+                                P:
+                                {{ curso.miercoles_inip|time:"H:i" }}-{{ curso.miercoles_finp|time:"H:i" }}
+                            {% endif %}
+                        </div>
+                    </td>
+
+                    <td class="jueves">
+                        <div class="horario">
+                            {% if curso.jueves_ini|time:"H:i" == "00:00" %}
+
+                            {% else %}
+                                {{ curso.jueves_ini|time:"H:i" }}-{{ curso.jueves_fin|time:"H:i" }}
+                            {% endif %}
+                        </div>
+                        <div class="horario">
+                            {% if curso.jueves_inip|time:"H:i" == "00:00" or not curso.jueves_inip %}
+
+                            {% else %}
+                                P: {{ curso.jueves_inip|time:"H:i" }}-{{ curso.jueves_finp|time:"H:i" }}
+                            {% endif %}
+                        </div>
+                    </td>
+
+                    <td class="viernes">
+                        <div class="horario">
+                            {% if curso.viernes_ini|time:"H:i" == "00:00" %}
+
+                            {% else %}
+                                {{ curso.viernes_ini|time:"H:i" }}-{{ curso.viernes_fin|time:"H:i" }}
+                            {% endif %}
+                        </div>
+                        <div class="horario">
+                            {% if curso.viernes_inip|time:"H:i" == "00:00" or not curso.viernes_inip %}
+
+                            {% else %}
+                                P: {{ curso.viernes_inip|time:"H:i" }}-{{ curso.viernes_finp|time:"H:i" }}
+                            {% endif %}
+                        </div>
+                    </td>
+                    <td class="observaciones">
+                        <div class="horario">
+                            {% if curso.observaciones == "Por definir" %}
+
+                            {% else %}
+                                {{ curso.observaciones }}
+                            {% endif %}
+                        </div>
+                        <div class="horario">
+                            {% if curso.observacionesp == "Por definir" or not curso.observacionesp %}
+
+                            {% else %}
+                                {{ curso.observacionesp }}
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% if not generar_pdf %}
+        <a class="btn btn-info" href="{% url 'mostrar_cursos' %}">Regresar</a>
+        <button type="submit" id="guardar-enviar" class="btn btn-success" onclick="generarYPdfEnviarPorEmail()">Guardar y enviar</button>
+    {% endif %}
+</form>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.3/js/jquery.dataTables.min.js"></script>
-<script src="/JS/mailer.js"></script>
 
 <script>
     function generarYPdfEnviarPorEmail() {
@@ -185,42 +181,31 @@
             jsPDF: { orientation: 'Landscape' },
         }).then(function (pdf) {
             console.log('PDF generado correctamente.');
-            enviarCorreo(pdf.output('blob'), filename);
+            // Elimina la llamada a envia_email aquí
         });
     }
 
+    function envia_email(destinatario, asunto, mensaje, archivo_adjunto) {
+        const formData = new FormData();
+        formData.append('imagen', imagen); // Adjunta la imagen al formulario de datos
+        formData.append('pdf', archivo_adjunto);
+        /*formData.append('csrfmiddlewaretoken', '/#{{ csrf_token }}'); */
+        formData.append('nom_program', '{{ usuario.nom_program }}'); // Agregar esta línea
 
-    async function enviarEmail() {
-        // Enviar email
-        const { transporter } = await import('./JS/mailer.js');
-        await transporter.sendMail({
-            from: '"Fred Foo 👻" <rodriguez.rosales@colpos.mx>',
-            to: "rodriguez.rosales@colpos.mx, baz@krodriguezr1@outlook.es",
-            subject: "Prueba 1",
-            text: "Para ver que se envía email",
-            html: "<b>Envió reporte del diseño de la oferta academica</b>"
+        fetch('/generarPDF/', {
+            method: 'POST',
+            body: formData
+        }).then(function (response) {
+            if (response.ok) {
+                console.log('Correo enviado correctamente');
+            } else {
+                console.error('Error al enviar el correo');
+            }
+        }).catch(function (error) {
+            console.error('Error al enviar el correo:', error);
         });
     }
-
-    async function descargarYEnviarPDF() {
-        console.log('Generando pdf');
-        const filename = 'reporte1.pdf';
-        html2pdf(document.body, {
-            filename: filename,
-            margin: [10, 10],
-            html2canvas: { scale: 2 },
-            jsPDF: { orientation: 'Landscape' },
-        }).then(async function (pdf) {
-            console.log('PDF generado correctamente.');
-            await enviarEmail(pdf.output('blob'), filename);
-        });
-    }
-
-
 </script>
-
-
-
 
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.2/html2pdf.bundle.min.js"></script>
