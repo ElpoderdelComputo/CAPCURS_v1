@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+{% load static %}
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+
+<body>
+<main>
+    <!-- La imagen institucional -->
+    <div class="center-image">
+        <img src="{% static 'imagenes/SubDirImg.png' %}" alt="" width="700">
+    </div>
+    <br>
+    <h1>{{ coordinacion.cve_posgrad }} - {{ coordinacion.nom_program }}</h1>
+    <h2>Cursos programados en el periodo: Primavera 2023</h2>
+    <p></p>
+
+    <table id="tabla-cursos" class="display" style="width:100%">
+        <thead>
+        <tr>
+            <th scope="col">ID</th>
+            <th scope="col">Clave de Curso</th>
+            <th scope="col">Nombre del curso</th>
+            <th scope="col">Clave del Profesor</th>
+            <th scope="col">Profesor Titular</th>
+            <th scope="col">Créditos</th>
+            <th scope="col">Lunes</th>
+            <th scope="col">Martes</th>
+            <th scope="col">Miercoles</th>
+            <th scope="col">Jueves</th>
+            <th scope="col">Viernes</th>
+            <th scope="col">Aula-Obs</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for curso in cursos_posgra %}
+            <tr>
+                <!--La función forloop.counter devuelve el número de veces que se ha iterado el ciclo for -->
+                <th scope="row">{{ forloop.counter }}</th>
+                <td>{{ curso.cve_curso_id }}</td>
+                <td>{{ curso.nombre }}</td>
+                <td>{{ curso.cve_academic_id }}</td>
+                <td>{{ curso.nom_academic }} {{ curso.apellidos }}</td>
+                <td>{{ curso.creditos }}</td>
+
+                <td class="lunes">
+                    <div class="horario">
+                        {% if curso.lunes_ini|time:"H:i" == "00:00" %}
+
+                        {% else %}
+                            {{ curso.lunes_ini|time:"H:i" }}-{{ curso.lunes_fin|time:"H:i" }}
+                        {% endif %}
+                    </div>
+                    <div class="horario">
+                        {% if curso.lunes_inip|time:"H:i" == "00:00" or not curso.lunes_inip %}
+
+                        {% else %}
+                            {{ curso.lunes_inip|time:"H:i" }}-{{ curso.lunes_finp|time:"H:i" }}
+                        {% endif %}
+                    </div>
+                </td>
+
+                <td class="martes">
+                    <div class="horario">
+                        {% if curso.martes_ini|time:"H:i" == "00:00" %}
+
+                        {% else %}
+                            {{ curso.martes_ini|time:"H:i" }}-{{ curso.martes_fin|time:"H:i" }}
+                        {% endif %}
+                    </div>
+                    <div class="horario">
+                        {% if curso.martes_inip|time:"H:i" == "00:00" or not curso.martes_inip %}
+
+                        {% else %}
+                            {{ curso.martes_inip|time:"H:i" }}-{{ curso.martes_finp|time:"H:i" }}
+                        {% endif %}
+                    </div>
+                </td>
+
+                <td class="miercoles">
+                    <div class="horario">
+                        {% if curso.miercoles_ini|time:"H:i" == "00:00" %}
+
+                        {% else %}
+                            {{ curso.miercoles_ini|time:"H:i" }}-{{ curso.miercoles_fin|time:"H:i" }}
+                        {% endif %}
+                    </div>
+                    <div class="horario">
+                        {% if curso.miercoles_inip|time:"H:i" == "00:00" or not curso.miercoles_inip %}
+
+                        {% else %}
+                            {{ curso.miercoles_inip|time:"H:i" }}-{{ curso.miercoles_finp|time:"H:i" }}
+                        {% endif %}
+                    </div>
+                </td>
+
+                <td class="jueves">
+                    <div class="horario">
+                        {% if curso.jueves_ini|time:"H:i" == "00:00" %}
+
+                        {% else %}
+                            {{ curso.jueves_ini|time:"H:i" }}-{{ curso.jueves_fin|time:"H:i" }}
+                        {% endif %}
+                    </div>
+                    <div class="horario">
+                        {% if curso.jueves_inip|time:"H:i" == "00:00" or not curso.jueves_inip %}
+
+                        {% else %}
+                            {{ curso.jueves_inip|time:"H:i" }}-{{ curso.jueves_finp|time:"H:i" }}
+                        {% endif %}
+                    </div>
+                </td>
+
+                <td class="viernes">
+                    <div class="horario">
+                        {% if curso.viernes_ini|time:"H:i" == "00:00" %}
+
+                        {% else %}
+                            {{ curso.viernes_ini|time:"H:i" }}-{{ curso.viernes_fin|time:"H:i" }}
+                        {% endif %}
+                    </div>
+                    <div class="horario">
+                        {% if curso.viernes_inip|time:"H:i" == "00:00" or not curso.viernes_inip %}
+
+                        {% else %}
+                            {{ curso.viernes_inip|time:"H:i" }}-{{ curso.viernes_finp|time:"H:i" }}
+                        {% endif %}
+                    </div>
+                </td>
+                <td class="observaciones">
+                    <div class="horario">
+                        {% if curso.observaciones == 'Por definir'%}
+
+                        {% else %}
+                            {{ curso.observaciones }}
+                        {% endif %}
+                    </div>
+                    <div class="horario">
+                        {% if curso.observacionesp == "Por definir" or not curso.observacionesp %}
+
+                        {% else %}
+                            {{ curso.observacionesp }}
+                        {% endif %}
+                    </div>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    <div id="popup-container"></div>
+
+    <a class="btn btn-success" href="{% url 'mostrar_cursos' %}">Regresar</a>
+
+</main>
+<script>
+    $(document).ready(function () {
+        $('#registrodecursos').DataTable();
+    });
+</script>
+
+</body>
+</html>
